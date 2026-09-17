@@ -390,22 +390,22 @@ All routes prefixed with `/api/v1`.
 
 ## 6. Frontend Structure
 
-### Pages (Smart Components)
+### Pages (Ultra-Lean Component Strategy)
 
-| Page | Route | Description |
-|------|-------|-------------|
-| Dashboard | `/` | Landing page with quick stats |
-| Instructors | `/instructors` | CRUD list for instructors |
-| Instructor Form | `/instructors/new`, `/instructors/:id/edit` | Add/edit instructor |
-| Customers | `/customers` | CRUD list for customers |
-| Customer Form | `/customers/new`, `/customers/:id/edit` | Add/edit customer |
-| Classes | `/classes` | Class schedule view |
-| Class Form | `/classes/new`, `/classes/:id/edit` | Add/edit class |
-| Packages | `/packages` | Package list |
-| Package Form | `/packages/new`, `/packages/:id/edit` | Add/edit package |
-| Record Sale | `/sales/new` | Record a sale form |
-| Record Attendance | `/attendance/new` | Attendance recording form |
-| Reports | `/reports` | Report selection and display |
+To minimize boilerplate and prevent over-engineering, we will use an **Ultra-Lean** approach. The application shell (sidebar/header) lives directly in `AppComponent`, and all CRUD forms are handled via Angular Material Dialogs (popups) instead of standalone routed pages.
+
+| Component | Route | Description |
+|-----------|-------|-------------|
+| `AppComponent` | N/A | Root shell containing Sidebar and Header navigation |
+| `LoginComponent` | `/login` | Authentication entry |
+| `DashboardComponent` | `/` | Landing page with quick stats |
+| `InstructorsComponent` | `/instructors` | Data table. "Add/Edit" opens a Material Dialog form. |
+| `CustomersComponent` | `/customers` | Data table. "Add/Edit" opens a Material Dialog form. |
+| `ClassesComponent` | `/classes` | Class schedule view. "Add" opens Dialog form. |
+| `PackagesComponent` | `/packages` | Package list. "Add" opens Dialog form. |
+| `RecordSaleComponent` | `/sales/new` | Full-page transaction flow for a sale. |
+| `RecordAttendanceComponent`| `/attendance/new` | Full-page attendance checklist flow. |
+| `ReportsComponent` | `/reports` | Data tables for the four report types. |
 
 ### Angular Services
 
@@ -596,12 +596,12 @@ All config is managed via Heroku **config vars** (never committed to the repo):
 | Phase | Scope | Key Deliverables |
 |-------|-------|-----------------|
 | **Phase 0** | Planning | `PLAN.md`, `README.md`, repository baseline |
-| **Phase 1** | Project Scaffold | `frontend/` (Angular CLI), `backend/` (Express + Mongoose), Heroku root deployment scripts |
-| **Phase 2** | UI & Auth Baseline | Angular Material setup, JWT Auth routes, Login page |
-| **Phase 3** | Instructor & Customer CRUD | API routes, Angular forms, validation, ID generation |
-| **Phase 4** | Class & Package CRUD | Schedule management, conflict detection, package creation |
-| **Phase 5** | Sales & Attendance | Record sale flow, attendance tracking, class-balance updates |
-| **Phase 6** | Reports & Polish | All four report types, Heroku production testing |
+| **Phase 1** | Project Scaffold | `frontend/` (Angular CLI), `backend/` (Express + Mongoose) |
+| **Phase 2** | Horizontal UI Mock | Build the entire Angular Frontend using the 10-Component Strategy, Material Dialogs, and mocked data. No DB connection yet. |
+| **Phase 3** | Vertical Slice 1 (Auth) | Connect MongoDB. Build `UserModel` and Express Auth routes. Connect Angular Login page for full-stack authentication. |
+| **Phase 4** | Vertical Slice 2 (Instructors) | Build `InstructorModel` and Express routes. Connect Angular Instructors Table/Form to the live DB. (Satisfies assignment requirements). |
+| **Phase 5** | Remaining Vertical Slices | Build out MongoDB/Express integration for Customers, Classes, Packages, Sales, and Attendance. |
+| **Phase 6** | Reports & Deployment | Build report aggregations. Finalize Heroku production deployment script. |
 
 ---
 
@@ -630,3 +630,7 @@ Key architectural decisions and dialogues logged for academic reference:
 5. **UI/UX Theming Strategy**:
    *Inquiry*: Establishing an efficient approach to application styling.
    *Resolution*: The AI initially proposed building all UI elements from scratch using pure CSS variables to maintain a strict monochrome aesthetic. This was evaluated as too time-consuming for the project scope. Pivoted to using **Angular Material**, which provides robust, pre-built components (tables, forms) out of the box, while configuring a custom monochrome Material theme to fulfill the aesthetic requirement.
+
+6. **Frontend Component Architecture**:
+   *Inquiry*: Determining the scale and routing of Angular components.
+   *Resolution*: The AI proposed a highly segregated component structure (e.g., separating List views and Form views into distinct routed pages). This was evaluated as creating excessive boilerplate. Successfully pivoted to an "Ultra-Lean" approach, consolidating layouts into the root component and utilizing Angular Material Dialogs for all CRUD forms, effectively cutting the required component count in half.
