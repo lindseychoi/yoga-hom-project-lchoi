@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { instructorRouter } from './instructor.routes';
+import { authRouter } from './auth.routes';
 
 export const apiRouter = Router();
 
@@ -9,6 +10,7 @@ apiRouter.get('/health', (_req, res) => {
 });
 
 // Resource routes
+apiRouter.use('/auth', authRouter);
 apiRouter.use('/instructors', instructorRouter);
 
 // Future routes:
@@ -18,4 +20,3 @@ apiRouter.use('/instructors', instructorRouter);
 // apiRouter.use('/sales', saleRouter);
 // apiRouter.use('/attendance', attendanceRouter);
 // apiRouter.use('/reports', reportRouter);
-// apiRouter.use('/auth', authRouter);

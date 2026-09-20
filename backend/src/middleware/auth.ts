@@ -14,13 +14,18 @@ export const authenticate = (
   _res: Response,
   next: NextFunction
 ): void => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET is not set');
+  }
+
   try {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) {
       throw new AppError(401, 'Authentication required');
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret') as {
+    const decoded = jwt.verify(token, secret) as {
       id: string;
       role: 'Manager' | 'Instructor';
     };
