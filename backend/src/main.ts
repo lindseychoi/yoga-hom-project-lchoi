@@ -22,7 +22,7 @@ app.use('/api/v1', apiRouter);
 // Serve Angular static files in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../../frontend/dist/frontend/browser')));
-  app.get('*', (_req, res) => {
+  app.get('/{*splat}', (_req, res) => {
     res.sendFile(path.join(__dirname, '../../frontend/dist/frontend/browser/index.html'));
   });
 }

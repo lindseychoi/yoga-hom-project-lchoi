@@ -13,7 +13,7 @@ export const getAll = async (req: Request, res: Response, next: NextFunction) =>
   }
 };
 
-export const getById = async (req: Request, res: Response, next: NextFunction) => {
+export const getById = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
   try {
     const found = await classService.findById(req.params.id);
     res.json(found);
@@ -31,7 +31,7 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
   }
 };
 
-export const update = async (req: Request, res: Response, next: NextFunction) => {
+export const update = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
   try {
     const updated = await classService.update(req.params.id, req.body);
     res.json(updated);
@@ -40,7 +40,7 @@ export const update = async (req: Request, res: Response, next: NextFunction) =>
   }
 };
 
-export const remove = async (req: Request, res: Response, next: NextFunction) => {
+export const remove = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
   try {
     await classService.remove(req.params.id);
     res.status(204).send();

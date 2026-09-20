@@ -547,33 +547,33 @@ sequenceDiagram
 
 ### Pipeline (GitHub Actions)
 
+CI runs in GitHub Actions (`.github/workflows/ci.yml`) on every push and pull request to `main`. Deployment is handled by Heroku's GitHub integration with **Wait for CI to pass** enabled, so no Heroku credentials are stored in GitHub. Linting is out of scope for the first deploy.
+
 ```mermaid
 graph LR
-    Push["Push / PR to main"] --> Lint["Lint & Format Check"]
-    Lint --> Build["Build API + Angular"]
-    Build --> Test["Unit Tests"]
-    Test --> Deploy{"main branch?"}
-    Deploy -->|Yes| Heroku["Deploy to Heroku"]
-    Deploy -->|No| Done["PR Check Complete"]
+    Push["Push / PR to main"] --> Install["Install dependencies"]
+    Install --> Build["Build API + Angular"]
+    Build --> Test["Run tests"]
+    Test --> Gate{"main branch?"}
+    Gate -->|No| Done["PR check complete"]
+    Gate -->|Yes| Heroku["Heroku auto-deploy (after CI passes)"]
 ```
-
-## 9. CI/CD & Deployment
 
 ### Heroku Deployment Strategy (Single-Dyno)
 
-To fulfill assignment requirements and keep hosting simple/free, we will use a **Single-Dyno Heroku approach**:
+To fulfill assignment requirements and keep hosting simple, we use a **Single-Dyno Heroku approach**:
 One Heroku app runs the Express server, which serves both the REST API and the built Angular production files.
 
 **How it works:**
-1. A `package.json` at the root of the repository handles the Heroku build pipeline.
-2. When pushed to Heroku, a `postinstall` script runs: `cd frontend && npm install && npm run build && cd ../backend && npm install`.
-3. Heroku runs the `start` script: `cd backend && npm start`.
-4. Inside Express, `express.static()` serves the Angular `frontend/dist/` folder for any non-API routes.
+1. A `package.json` at the root of the repository handles the Heroku build pipeline and pins the Node version in `engines`.
+2. After Heroku installs dependencies, a `heroku-postbuild` script installs and builds both apps: `npm --prefix frontend ci && npm --prefix frontend run build && npm --prefix backend ci && npm --prefix backend run build`.
+3. Heroku runs the `start` script, which starts the compiled backend (`node backend/dist/main.js`).
+4. Inside Express, `express.static()` serves the built Angular app from `frontend/dist/frontend/browser` for any non-API routes.
 
 | Component | Detail |
 |-----------|---------|
 | **Express API** | Serves REST API on `/api/v1/*` |
-| **Angular Frontend** | Express serves the built Angular `dist/` as static files on `/*` |
+| **Angular Frontend** | Express serves the built Angular app as static files on `/*` |
 | **MongoDB** | MongoDB Atlas (free tier); connection string stored in Heroku config vars |
 
 ### Environment Variables
@@ -585,6 +585,9 @@ All config is managed via Heroku **config vars** (never committed to the repo):
 | `MONGODB_URI` | MongoDB Atlas connection string |
 | `PORT` | Heroku-assigned port |
 | `JWT_SECRET` | Auth token signing key |
+| `NODE_ENV` | Set to `production` so Express serves the Angular build |
+
+After the first deploy, the production Manager account is created with the compiled seed script.
 
 ---
 

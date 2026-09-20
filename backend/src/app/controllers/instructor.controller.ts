@@ -10,7 +10,7 @@ export const getAll = async (_req: Request, res: Response, next: NextFunction) =
   }
 };
 
-export const getById = async (req: Request, res: Response, next: NextFunction) => {
+export const getById = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
   try {
     const instructor = await instructorService.findById(req.params.id);
     res.json(instructor);
@@ -28,7 +28,7 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
   }
 };
 
-export const update = async (req: Request, res: Response, next: NextFunction) => {
+export const update = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
   try {
     const instructor = await instructorService.update(req.params.id, req.body);
     res.json(instructor);
@@ -37,7 +37,7 @@ export const update = async (req: Request, res: Response, next: NextFunction) =>
   }
 };
 
-export const remove = async (req: Request, res: Response, next: NextFunction) => {
+export const remove = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
   try {
     await instructorService.remove(req.params.id);
     res.status(204).send();

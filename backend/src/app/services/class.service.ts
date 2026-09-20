@@ -9,7 +9,7 @@ const assertInstructorExists = async (instructorId: string): Promise<void> => {
 };
 
 const assertSlotFree = async (
-  dayOfWeek: string,
+  dayOfWeek: IClass['dayOfWeek'],
   time: string,
   excludeId?: string
 ): Promise<void> => {

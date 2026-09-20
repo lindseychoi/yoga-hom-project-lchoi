@@ -1,0 +1,11 @@
+{
+  "name": "yogitrack",
+  "private": true,
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "heroku-postbuild": "npm --prefix frontend ci --include=dev && npm --prefix frontend run build && npm --prefix backend ci --include=dev && npm --prefix backend run build && npm --prefix backend prune --omit=dev && rm -rf frontend/node_modules",
+    "start": "node backend/dist/main.js"
+  }
+}
