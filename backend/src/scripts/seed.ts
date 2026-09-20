@@ -14,14 +14,14 @@ const seed = async () => {
   }
 
   await mongoose.connect(MONGODB_URI);
-  if (await User.exists({ email: SEED_MANAGER_EMAIL.toLowerCase() })) {
-    console.log('Manager already exists');
-    return;
-  }
-
+  const email = SEED_MANAGER_EMAIL.toLowerCase();
   const passwordHash = await bcrypt.hash(SEED_MANAGER_PASSWORD, SALT_ROUNDS);
-  await User.create({ email: SEED_MANAGER_EMAIL, passwordHash, role: 'Manager' });
-  console.log(`Created Manager ${SEED_MANAGER_EMAIL}`);
+  const { upsertedCount } = await User.updateOne(
+    { email },
+    { passwordHash, role: 'Manager' },
+    { upsert: true }
+  );
+  console.log(`${upsertedCount ? 'Created' : 'Updated'} Manager ${email}`);
 };
 
 seed()

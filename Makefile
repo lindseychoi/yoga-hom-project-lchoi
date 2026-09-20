@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install dev backend frontend build test
+.PHONY: help install dev backend frontend build test seed
 
 help:
 	@echo YogiTrack commands:
@@ -9,6 +9,7 @@ help:
 	@echo   make frontend  Run only Angular on http://localhost:4200
 	@echo   make build     Build backend and frontend
 	@echo   make test      Run backend and frontend tests
+	@echo   make seed      Create or update the Manager user
 
 install:
 	npm --prefix backend install
@@ -30,3 +31,6 @@ build:
 test:
 	npm --prefix backend test
 	npm --prefix frontend test -- --watch=false
+
+seed:
+	npm --prefix backend run seed
