@@ -614,7 +614,7 @@ Key architectural decisions and dialogues logged for academic reference:
 
 2. **Data Validation Strategy**:
    *Inquiry*: Selection of input validation libraries for the Express API.
-   *Resolution*: Pushed back against the AI's recommendation to use `Zod`. Opted instead for `class-validator` to utilize a decorator-based pattern, aligning better with standard Angular development practices and keeping the codebase highly readable.
+   *Resolution*: Pushed back against the AI's recommendation to use `Zod`. Opted instead for `class-validator` to utilize a decorator-based pattern, aligning better with standard Angular development practices and keeping the codebase highly readable. Later simplified: validation now lives in the Mongoose schemas, with the error handler mapping failures to HTTP 400, so `class-validator` is no longer used.
 
 3. **Deployment Constraints**:
    *Inquiry*: Establishing the CI/CD and deployment pipeline.

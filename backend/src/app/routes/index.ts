@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { instructorRouter } from './instructor.routes';
 import { authRouter } from './auth.routes';
+import { classRouter } from './class.routes';
 
 export const apiRouter = Router();
 
@@ -12,10 +13,10 @@ apiRouter.get('/health', (_req, res) => {
 // Resource routes
 apiRouter.use('/auth', authRouter);
 apiRouter.use('/instructors', instructorRouter);
+apiRouter.use('/classes', classRouter);
 
 // Future routes:
 // apiRouter.use('/customers', customerRouter);
-// apiRouter.use('/classes', classRouter);
 // apiRouter.use('/packages', packageRouter);
 // apiRouter.use('/sales', saleRouter);
 // apiRouter.use('/attendance', attendanceRouter);

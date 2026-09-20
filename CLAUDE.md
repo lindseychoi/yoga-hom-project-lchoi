@@ -28,7 +28,7 @@ A MEAN-stack web application for **Yoga H'om Studio** (Pittsburgh, PA) that auto
 | **Frontend** | Angular (standalone components), Angular Material, TypeScript |
 | **Backend** | Express.js, TypeScript, Mongoose ODM |
 | **Database** | MongoDB (Atlas free tier in production) |
-| **Validation** | `class-validator` (decorator-based — NOT Zod) |
+| **Validation** | Mongoose schema validation; the error handler returns 400 |
 | **Auth** | JWT (`jsonwebtoken` + `bcryptjs`), role-based (Manager / Instructor) |
 | **Deployment** | Single Heroku dyno (Express serves Angular dist as static files) |
 
