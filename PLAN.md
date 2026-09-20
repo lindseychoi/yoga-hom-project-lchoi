@@ -136,7 +136,7 @@ erDiagram
         date createdAt
     }
 
-    CLASS {
+    YOGA_CLASS {
         string _id PK
         string instructorId FK
         string dayOfWeek
@@ -188,8 +188,8 @@ erDiagram
         boolean negativeBalance "flag if balance went negative"
     }
 
-    INSTRUCTOR ||--o{ CLASS : "leads"
-    CLASS ||--o{ ATTENDANCE_RECORD : "has"
+    YOGA_CLASS }o--|| INSTRUCTOR : "has"
+    YOGA_CLASS ||--o{ ATTENDANCE_RECORD : "has"
     ATTENDANCE_RECORD ||--o{ ATTENDANCE_ENTRY : "contains"
     CUSTOMER ||--o{ ATTENDANCE_ENTRY : "checked-in"
     CUSTOMER ||--o{ SALE : "purchases"
@@ -260,7 +260,7 @@ graph LR
 | **Actor** | Manager |
 | **Precondition** | At least one instructor exists |
 | **Input** | instructorId, dayOfWeek, time, classType (General/Special), className, payRate |
-| **Flow** | 1. Manager submits class form. 2. Server checks for schedule conflicts (only one class per time slot). 3. If conflict → server returns alternative available slots. 4. Manager selects a slot. 5. Class saved and published. 6. Confirmation sent to manager and instructor. |
+| **Flow** | 1. Manager submits class form. 2. Server checks for schedule conflicts (only one class per time slot). 3. If conflict → server returns alternative available slots. 4. Manager selects a slot. 5. Class saved and published. 6. Confirmation sent to the manager and the instructor. |
 | **Postcondition** | New class in schedule; no time-slot conflicts |
 
 ### UC3: Add Package

@@ -127,7 +127,7 @@ Six core entities — see `PLAN.md` Section 3 for full ERD:
 
 - **Instructor** — studio teachers (`I`-prefixed ID)
 - **Customer** — studio clients (`C`-prefixed ID, has `classBalance`)
-- **Class** — scheduled sessions (linked to instructor, has `dayOfWeek`/`time`)
+- **Class** — scheduled sessions (linked to an instructor, has `dayOfWeek`/`time`)
 - **Package** — purchasable bundles (1/4/10/unlimited classes)
 - **Sale** — transaction linking customer ↔ package
 - **AttendanceRecord / AttendanceEntry** — per-class check-ins, decrements `classBalance`

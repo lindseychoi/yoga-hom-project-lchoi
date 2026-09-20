@@ -22,7 +22,7 @@ import { AuthService } from '../../services/auth.service';
         <button mat-icon-button type="button" class="close" aria-label="Close" (click)="showForm.set(false)">
           <mat-icon>close</mat-icon>
         </button>
-        <h2>Welcome back</h2>
+        <h2>Welcome back, please sign in.</h2>
         <mat-form-field appearance="outline">
           <mat-label>Email</mat-label>
           <input matInput type="email" formControlName="email" />
@@ -112,6 +112,7 @@ import { AuthService } from '../../services/auth.service';
       margin: 0;
       font-family: vars.$font-sans;
       font-weight: 300;
+      padding-bottom: 1rem;
     }
 
     .card button[type='submit'] {
