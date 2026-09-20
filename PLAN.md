@@ -47,7 +47,7 @@
 
 ```mermaid
 graph TB
-    subgraph Client["Angular Frontend (Nx App)"]
+    subgraph Client["Angular Frontend"]
         Pages["Pages / Smart Components"]
         UI["UI / Presentational Components"]
         Services["Angular Services (HTTP)"]
@@ -57,7 +57,7 @@ graph TB
         Services --> State
     end
 
-    subgraph Server["Express Backend (Nx App)"]
+    subgraph Server["Express Backend"]
         Routes["Routes"]
         Controllers["Controllers"]
         SvcLayer["Service Layer"]
@@ -75,36 +75,33 @@ graph TB
     Models -->|"Mongoose ODM"| MongoDB
 ```
 
-### Nx Monorepo Layout
+### Project Layout
 
 ```
-yoga-hom/
-├── apps/
-│   ├── yogitrack-api/          # Express backend app
-│   │   └── src/
-│   │       ├── main.ts
-│   │       ├── app/
-│   │       │   ├── routes/
-│   │       │   ├── controllers/
-│   │       │   ├── services/
-│   │       │   └── models/
-│   │       └── environments/
-│   └── yogitrack/              # Angular frontend app
-│       └── src/
-│           ├── app/
-│           │   ├── pages/
-│           │   ├── components/
-│           │   ├── services/
-│           │   ├── state/
-│           │   └── models/
-│           ├── styles/
-│           └── environments/
-├── libs/
-│   └── shared/
-│       └── models/             # Shared TypeScript interfaces/types
-├── nx.json
-├── package.json
+yoga-hom-project-lchoi/
+├── frontend/                   # Angular CLI app
+│   └── src/
+│       ├── app/
+│       │   ├── pages/          # Smart/routed components (one per route)
+│       │   ├── components/     # Presentational / shared components
+│       │   ├── services/       # Angular HTTP services
+│       │   ├── state/          # State management
+│       │   └── models/         # Frontend-only interfaces
+│       ├── styles/             # Global styles, Material theme
+│       └── environments/
+├── backend/                    # Express + Mongoose API
+│   └── src/
+│       ├── app/
+│       │   ├── routes/         # Express route definitions
+│       │   ├── controllers/    # Request handlers
+│       │   ├── services/       # Business logic
+│       │   └── models/         # Mongoose schemas/models
+│       ├── middleware/         # Auth guards, error handler
+│       └── environments/
+├── package.json                # Heroku build/start scripts (see Section 9)
 ├── PLAN.md
+├── CLAUDE.md
+├── README.md
 └── LICENSE
 ```
 
