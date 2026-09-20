@@ -16,6 +16,11 @@ mat-sidenav {
   backdrop-filter: blur(12px);
 }
 
+mat-nav-list {
+  --mat-list-list-item-label-text-font: #{vars.$font-sans};
+  --mat-list-list-item-label-text-weight: 400;
+}
+
 .identity {
   display: flex;
   flex-direction: column;

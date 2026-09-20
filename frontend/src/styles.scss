@@ -14,7 +14,7 @@ html {
   @include mat.theme-overrides((
     primary: vars.$color-indigo,
     on-primary: white,
-    on-surface: vars.$color-ink,
+    on-surface: vars.$color-indigo,
     outline: vars.$color-periwinkle,
   ));
 }
@@ -28,8 +28,29 @@ body {
   height: 100%;
 }
 
+h1,
+h2,
+h3 {
+  font-family: vars.$font-sans;
+  font-weight: 300;
+  color: vars.$color-indigo;
+}
+
 mat-sidenav .mat-drawer-inner-container {
   overflow: hidden;
+}
+
+.mat-mdc-dialog-container {
+  --mat-dialog-container-color: rgb(255 255 255 / 0.6);
+}
+
+.mat-mdc-dialog-surface {
+  backdrop-filter: blur(12px);
+}
+
+.mat-mdc-select-panel {
+  --mat-select-panel-background-color: rgb(255 255 255 / 0.6);
+  backdrop-filter: blur(12px);
 }
 
 input:-webkit-autofill,
