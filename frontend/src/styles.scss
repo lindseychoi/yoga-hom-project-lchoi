@@ -1,4 +1,5 @@
 @use '@angular/material' as mat;
+@use './styles/variables' as vars;
 
 html {
   height: 100%;
@@ -9,6 +10,12 @@ html {
     ),
     typography: Roboto,
     density: 0,
+  ));
+  @include mat.theme-overrides((
+    primary: vars.$color-indigo,
+    on-primary: white,
+    on-surface: vars.$color-ink,
+    outline: vars.$color-periwinkle,
   ));
 }
 

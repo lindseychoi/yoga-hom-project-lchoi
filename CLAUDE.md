@@ -65,7 +65,7 @@ yoga-hom-project-lchoi/
 
 1. **Simple two-folder structure** — NO Nx monorepo. Plain `frontend/` and `backend/` folders.
 2. **Ultra-Lean frontend** — App shell (sidebar + header) lives in `AppComponent`. All CRUD forms use Angular Material Dialogs, not separate routed pages.
-3. **Angular Material** for all UI components — tables, forms, dialogs, nav. Custom monochrome theme (black/white/gray).
+3. **Angular Material** for all UI components — tables, forms, dialogs, nav. Custom theme: photo-led landing page and a five-color palette defined as SCSS variables in `frontend/src/styles/_variables.scss`.
 4. **No hardcoding** — all business data served dynamically from Express/MongoDB.
 5. **ID generation** — server-side via a `Counter` collection: Instructors (`I00XXX`), Customers (`C00XXX`), Packages (`PKG00X`).
 6. **API prefix** — all routes under `/api/v1/`.

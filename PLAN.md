@@ -38,7 +38,7 @@
 
 - **No hardcoding** — all business data (schedules, roles, packages) is served dynamically from Express/MongoDB.
 - **Clean modular architecture** — Controllers, Services, Models, Routes (backend); Components, Services, State Management (frontend).
-- **Minimalist monochrome UI** — black & white baseline; semantic HTML enabling future theming without logic refactors.
+- **Photo-led UI** — a full-bleed landing photo with a soft five-color palette held in SCSS variables; semantic HTML enabling future theming without logic refactors.
 - **Visual documentation** — Mermaid.js diagrams for architecture, ERD, and data flows.
 
 ---
@@ -538,7 +538,7 @@ sequenceDiagram
 
 - **Component Library**: **Angular Material**
 - **Rationale**: Utilizing a robust, pre-built component library significantly accelerates development for complex UI elements like data tables (for reports and lists), forms, and navigation sidebars.
-- **Theming**: We will configure a custom monochrome/minimalist Material theme (black, white, and gray scales) to maintain the originally planned aesthetic while benefiting from Material's accessibility and functionality.
+- **Theming**: We configure the Material theme from a five-color palette held in SCSS variables (`frontend/src/styles/_variables.scss`), with a full-bleed photo landing page and a frosted-card login dialog, while benefiting from Material's accessibility and functionality.
 - **Structure**: All major UI blocks (buttons, inputs, cards, tables) will strictly use `@angular/material` components rather than raw HTML elements to ensure consistency.
 
 ---
@@ -626,7 +626,7 @@ Key architectural decisions and dialogues logged for academic reference:
 
 5. **UI/UX Theming Strategy**:
    *Inquiry*: Establishing an efficient approach to application styling.
-   *Resolution*: The AI initially proposed building all UI elements from scratch using pure CSS variables to maintain a strict monochrome aesthetic. This was evaluated as too time-consuming for the project scope. Pivoted to using **Angular Material**, which provides robust, pre-built components (tables, forms) out of the box, while configuring a custom monochrome Material theme to fulfill the aesthetic requirement.
+   *Resolution*: The AI initially proposed building all UI elements from scratch using pure CSS variables to maintain a strict monochrome aesthetic. This was evaluated as too time-consuming for the project scope. Pivoted to using **Angular Material**, which provides robust, pre-built components (tables, forms) out of the box, while configuring a custom Material theme to fulfill the aesthetic requirement.
 
 6. **Frontend Component Architecture**:
    *Inquiry*: Determining the scale and routing of Angular components.

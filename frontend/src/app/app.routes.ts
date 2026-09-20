@@ -4,7 +4,7 @@ import { Dashboard } from './pages/dashboard/dashboard';
 import { Login } from './pages/login/login';
 
 export const routes: Routes = [
-  { path: 'login', component: Login },
-  { path: '', component: Dashboard, pathMatch: 'full', canActivate: [authGuard] },
+  { path: '', component: Login, pathMatch: 'full' },
+  { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
   { path: '**', redirectTo: '' },
 ];
