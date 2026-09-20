@@ -3,19 +3,25 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule],
+  imports: [ReactiveFormsModule, MatFormFieldModule, MatIconModule, MatInputModule, MatButtonModule],
   template: `
     <img class="background" src="landing-page.png" alt="" />
     <h1 class="wordmark">YOGA<br />HOM</h1>
-    <button mat-button type="button" class="toggle" (click)="showForm.set(!showForm())">Log in</button>
+    @if (!showForm()) {
+      <button mat-button type="button" class="toggle" (click)="showForm.set(true)">Log in</button>
+    }
 
     @if (showForm()) {
       <form class="card" [formGroup]="form" (ngSubmit)="submit()">
+        <button mat-icon-button type="button" class="close" aria-label="Close" (click)="showForm.set(false)">
+          <mat-icon>close</mat-icon>
+        </button>
         <h2>Welcome back</h2>
         <mat-form-field appearance="outline">
           <mat-label>Email</mat-label>
@@ -32,7 +38,7 @@ import { AuthService } from '../../services/auth.service';
       </form>
     }
 
-    <p class="tagline">Inner peace is waiting for you.</p>
+    <p class="tagline">Come as you are. Leave lighter.</p>
   `,
   styles: `
     @use '../../../styles/variables' as vars;
@@ -89,6 +95,17 @@ import { AuthService } from '../../services/auth.service';
       background: rgb(255 255 255 / 0.7);
       backdrop-filter: blur(12px);
       color: vars.$color-indigo;
+    }
+
+    .close {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+    }
+
+    input:-webkit-autofill {
+      transition: background-color 5000s ease-in-out 0s;
+      -webkit-text-fill-color: vars.$color-ink;
     }
 
     h2 {
