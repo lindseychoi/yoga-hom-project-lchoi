@@ -11,6 +11,7 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-login',
   imports: [ReactiveFormsModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule],
   templateUrl: './login.html',
+  styleUrl: './login.scss',
 })
 export class Login {
   private readonly auth = inject(AuthService);
