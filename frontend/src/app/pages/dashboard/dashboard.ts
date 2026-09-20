@@ -1,15 +1,7 @@
-import { Component, inject } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { AuthService } from '../../services/auth.service';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [MatButtonModule],
-  template: `
-    <p>Dashboard</p>
-    <button mat-button type="button" (click)="auth.logout()">Log out</button>
-  `,
+  template: '',
 })
-export class Dashboard {
-  protected readonly auth = inject(AuthService);
-}
+export class Dashboard {}

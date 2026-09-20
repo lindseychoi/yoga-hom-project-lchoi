@@ -103,11 +103,6 @@ import { AuthService } from '../../services/auth.service';
       right: 0.5rem;
     }
 
-    input:-webkit-autofill {
-      transition: background-color 5000s ease-in-out 0s;
-      -webkit-text-fill-color: vars.$color-ink;
-    }
-
     h2 {
       margin: 0;
       font-family: vars.$font-sans;

@@ -1,1 +1,23 @@
-<router-outlet />
+<mat-sidenav-container class="shell" [class.app]="auth.isLoggedIn()">
+  <mat-sidenav mode="side" [opened]="auth.isLoggedIn()">
+    <div class="identity">
+      <img src="yoga-pose.svg" alt="" />
+      <span>{{ auth.role()?.toUpperCase() }} at {{ this.studioName }}</span>
+    </div>
+    <mat-nav-list>
+      <a mat-list-item routerLink="/dashboard">Dashboard</a>
+      <a mat-list-item routerLink="/instructors">Instructors</a>
+    </mat-nav-list>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    @if (auth.isLoggedIn()) {
+      <button mat-button type="button" class="logout" (click)="auth.logout()">
+        Log out
+        <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+      </button>
+    }
+    <main [class.page]="auth.isLoggedIn()">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

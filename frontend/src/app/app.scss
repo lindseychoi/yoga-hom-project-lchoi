@@ -1,0 +1,53 @@
+@use '../styles/variables' as vars;
+
+.shell {
+  height: 100vh;
+}
+
+.shell.app {
+  --mat-sidenav-content-background-color: transparent;
+  background: linear-gradient(to bottom, vars.$color-periwinkle, vars.$color-blush);
+}
+
+mat-sidenav {
+  width: 16rem;
+  overflow: hidden;
+  --mat-sidenav-container-background-color: rgb(255 255 255 / 0.5);
+  backdrop-filter: blur(12px);
+}
+
+.identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.25rem, 1vh, 0.5rem);
+  padding: clamp(0.5rem, 3vh, 1.5rem) 1rem;
+  text-align: center;
+  font-family: vars.$font-sans;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  color: vars.$color-indigo;
+}
+
+.identity img {
+  width: clamp(2rem, 10vh, 4rem);
+}
+
+.page {
+  margin: 4rem 2rem 2rem;
+  padding: 1.5rem;
+  border-radius: 2rem;
+  background: rgb(255 255 255 / 0.5);
+  border: 1px solid rgb(255 255 255 / 0.6);
+  box-shadow: 0 8px 32px rgb(0 0 0 / 0.1);
+  backdrop-filter: blur(12px);
+}
+
+.logout {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1;
+  --mat-button-text-label-text-font: #{vars.$font-script};
+  --mat-button-text-label-text-size: 2rem;
+}

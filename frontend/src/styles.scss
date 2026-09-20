@@ -27,3 +27,15 @@ body {
   margin: 0;
   height: 100%;
 }
+
+mat-sidenav .mat-drawer-inner-container {
+  overflow: hidden;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  transition: background-color 5000s ease-in-out 0s !important;
+  -webkit-text-fill-color: vars.$color-ink !important;
+}
