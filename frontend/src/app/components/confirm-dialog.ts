@@ -10,6 +10,7 @@ export interface ConfirmData {
 
 const ALERT_ID = 'alert-dialog';
 
+/** A small yes-or-no dialog. With hideCancel it becomes a message with just an OK button. */
 @Component({
   selector: 'app-confirm-dialog',
   imports: [MatButtonModule, MatDialogModule],
@@ -27,10 +28,12 @@ export class ConfirmDialog {
   protected readonly data = inject<ConfirmData>(MAT_DIALOG_DATA);
 }
 
-export const confirmAction = (dialog: MatDialog, data: ConfirmData, hasBackdrop = true) =>
+/** Opens the dialog and emits true if the user confirmed. hasBackdrop is false when another dialog is already open. */
+export const confirmAction =(dialog: MatDialog, data: ConfirmData, hasBackdrop = true) =>
   dialog.open(ConfirmDialog, { data, hasBackdrop }).afterClosed();
 
-export const alertAction = (dialog: MatDialog, message: string, hasBackdrop = true) =>
+/** Shows a message. If a message dialog is already open it reuses it, so two failed requests don't stack two dialogs. */
+export const alertAction =(dialog: MatDialog, message: string, hasBackdrop = true) =>
   (
     dialog.getDialogById(ALERT_ID) ??
     dialog.open(ConfirmDialog, {

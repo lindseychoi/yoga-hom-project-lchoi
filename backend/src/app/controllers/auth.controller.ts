@@ -1,3 +1,4 @@
+/** Login handler. Rejects a request that doesn't send an email and a password as text. */
 import { Request, Response, NextFunction } from 'express';
 import * as authService from '../services/auth.service';
 import { AppError } from '../../middleware/error-handler';

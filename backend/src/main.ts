@@ -1,3 +1,4 @@
+/** Starts the API: connects to MongoDB, mounts /api/v1, and in production also serves the built Angular app. */
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';

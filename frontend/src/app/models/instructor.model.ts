@@ -1,3 +1,4 @@
+/** An instructor as the API returns it. */
 export interface Instructor {
   _id: string;
   instructorId: string;

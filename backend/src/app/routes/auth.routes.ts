@@ -1,3 +1,4 @@
+/** The public login route. */
 import { Router } from 'express';
 import * as authController from '../controllers/auth.controller';
 

@@ -1,3 +1,4 @@
+/** HTTP handlers for instructors. Each one calls the service and passes any error to the shared error handler. */
 import { Request, Response, NextFunction } from 'express';
 import * as instructorService from '../services/instructor.service';
 

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AppError } from './error-handler';
 
+/** A request that carries the logged-in user once authenticate has run. */
 export interface AuthRequest extends Request {
   user?: {
     id: string;
@@ -9,6 +10,7 @@ export interface AuthRequest extends Request {
   };
 }
 
+/** Requires a valid Bearer token. Sets req.user, or answers 401 if it is missing, invalid, or expired. */
 export const authenticate = (
   req: AuthRequest,
   _res: Response,
@@ -41,6 +43,7 @@ export const authenticate = (
   }
 };
 
+/** Allows the request only for the given roles, otherwise answers 403. */
 export const authorize = (...roles: string[]) => {
   return (req: AuthRequest, _res: Response, next: NextFunction): void => {
     if (!req.user || !roles.includes(req.user.role)) {

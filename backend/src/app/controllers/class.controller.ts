@@ -1,3 +1,4 @@
+/** HTTP handlers for classes. getAll accepts an optional ?instructorId= filter. Errors go to the shared error handler. */
 import { Request, Response, NextFunction } from 'express';
 import * as classService from '../services/class.service';
 

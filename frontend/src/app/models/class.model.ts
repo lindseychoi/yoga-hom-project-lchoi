@@ -1,3 +1,4 @@
+// These lists must match the values the backend accepts.
 export const DAYS_OF_WEEK = [
   'Monday',
   'Tuesday',

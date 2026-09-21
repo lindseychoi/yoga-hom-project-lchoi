@@ -14,6 +14,7 @@ import { Instructor } from '../../models/instructor.model';
 import { ClassService } from '../../services/class.service';
 import { InstructorService } from '../../services/instructor.service';
 
+/** Table of classes with add, edit, and delete. The form opens as a dialog defined in this template. */
 @Component({
   selector: 'app-classes',
   imports: [
@@ -159,6 +160,7 @@ export class Classes {
     });
   }
 
+  /** Loads the classes, sorted Monday to Sunday and then by time. */
   private load() {
     this.classService.list().subscribe({
       next: (list) =>
@@ -173,6 +175,7 @@ export class Classes {
     });
   }
 
+  /** Opens the add form, or the edit form filled in when a class is passed in. */
   protected openForm(yogaClass?: YogaClass) {
     this.editing = yogaClass ?? null;
     this.form.reset(yogaClass);
@@ -186,6 +189,7 @@ export class Classes {
     );
   }
 
+  /** Saves, closes the form, and reloads the table. On an error (such as a taken time slot), shows the message and brings the form back. */
   private persist(request: Observable<YogaClass>) {
     request.subscribe({
       next: () => {
@@ -216,6 +220,7 @@ export class Classes {
     });
   }
 
+  /** Shows the server's message in a dialog. Pass false when another dialog is open, so two dark layers don't stack. */
   private showError(error: HttpErrorResponse, hasBackdrop = true) {
     return alertAction(this.dialog, error.error?.message ?? error.message, hasBackdrop);
   }

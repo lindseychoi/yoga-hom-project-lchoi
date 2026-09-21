@@ -3,8 +3,10 @@ import jwt from 'jsonwebtoken';
 import { User } from '../models/user.model';
 import { AppError } from '../../middleware/error-handler';
 
+/** How long a login token stays valid. The server refuses it after this. */
 const TOKEN_EXPIRES_IN = '8h';
 
+/** Checks the email and password. Returns a signed token and the user, or a 401 (the same message for a wrong email or a wrong password). */
 export const login = async (email: string, password: string) => {
   const user = await User.findOne({ email: email.toLowerCase() }).select('+passwordHash');
   const valid = user && (await bcrypt.compare(password, user.passwordHash));

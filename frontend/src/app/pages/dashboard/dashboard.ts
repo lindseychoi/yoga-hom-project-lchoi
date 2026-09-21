@@ -7,6 +7,7 @@ import { Instructor } from '../../models/instructor.model';
 import { ClassService } from '../../services/class.service';
 import { InstructorService } from '../../services/instructor.service';
 
+/** "This Week": every class grouped by day, Monday to Sunday, with today's column highlighted. */
 @Component({
   selector: 'app-dashboard',
   template: `
@@ -81,7 +82,8 @@ import { InstructorService } from '../../services/instructor.service';
 export class Dashboard {
   private readonly dialog = inject(MatDialog);
 
-  protected readonly today = DAYS_OF_WEEK[(new Date().getDay() + 6) % 7];
+  // getDay() counts Sunday as 0, so shift it to match the Monday-first list.
+  protected readonly today =DAYS_OF_WEEK[(new Date().getDay() + 6) % 7];
   protected readonly classes = signal<YogaClass[]>([]);
   protected readonly instructors = signal<Instructor[]>([]);
   protected readonly instructorNames = computed(

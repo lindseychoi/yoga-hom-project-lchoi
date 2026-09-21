@@ -2,10 +2,12 @@ import { Instructor, IInstructor } from '../models/instructor.model';
 import { Counter } from '../models/counter.model';
 import { AppError } from '../../middleware/error-handler';
 
+/** Lists instructors, newest first. */
 export const findAll = async (): Promise<IInstructor[]> => {
   return Instructor.find().sort({ createdAt: -1 });
 };
 
+/** Returns one instructor by database ID, or a 404. */
 export const findById = async (id: string): Promise<IInstructor> => {
   const instructor = await Instructor.findById(id);
   if (!instructor) {
@@ -14,6 +16,7 @@ export const findById = async (id: string): Promise<IInstructor> => {
   return instructor;
 };
 
+/** Creates an instructor. The readable ID comes from a counter that goes up by one each time (I00001, I00002, ...). */
 export const create = async (data: Partial<IInstructor>): Promise<IInstructor> => {
   const counter = await Counter.findByIdAndUpdate(
     { _id: 'instructor' },
@@ -31,6 +34,7 @@ export const create = async (data: Partial<IInstructor>): Promise<IInstructor> =
   return instructor.save();
 };
 
+/** Applies the changes and re-checks them against the schema. */
 export const update = async (
   id: string,
   data: Partial<IInstructor>
@@ -45,6 +49,7 @@ export const update = async (
   return instructor;
 };
 
+/** Deletes an instructor, or a 404 if it doesn't exist. */
 export const remove = async (id: string): Promise<void> => {
   const instructor = await Instructor.findByIdAndDelete(id);
   if (!instructor) {
@@ -52,6 +57,7 @@ export const remove = async (id: string): Promise<void> => {
   }
 };
 
+/** True if an instructor with this first and last name exists, ignoring capitals. The screen uses it to warn before saving a duplicate. */
 export const checkDuplicate = async (
   firstName: string,
   lastName: string

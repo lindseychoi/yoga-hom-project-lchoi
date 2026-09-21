@@ -12,6 +12,7 @@ import { alertAction, confirmAction } from '../../components/confirm-dialog';
 import { Instructor } from '../../models/instructor.model';
 import { InstructorService } from '../../services/instructor.service';
 
+/** Table of instructors with add, edit, and delete. The form opens as a dialog defined in this template. */
 @Component({
   selector: 'app-instructors',
   imports: [
@@ -140,12 +141,14 @@ export class Instructors {
     });
   }
 
+  /** Opens the add form, or the edit form filled in when an instructor is passed in. */
   protected openForm(instructor?: Instructor) {
     this.editing = instructor ?? null;
     this.form.reset(instructor);
     this.dialogRef = this.dialog.open(this.formDialog(), { width: '480px' });
   }
 
+  /** On add, first asks whether the name already exists. The form dialog is hidden while that question shows, so nothing typed is lost. */
   protected save() {
     const data = this.form.getRawValue();
     if (this.editing) {
@@ -178,6 +181,7 @@ export class Instructors {
     });
   }
 
+  /** Saves, closes the form, and reloads the table. On an error, shows the message and brings the form back. */
   private persist(request: Observable<Instructor>) {
     request.subscribe({
       next: () => {
@@ -208,6 +212,7 @@ export class Instructors {
     });
   }
 
+  /** Shows the server's message in a dialog. Pass false when another dialog is open, so two dark layers don't stack. */
   private showError(error: HttpErrorResponse, hasBackdrop = true) {
     return alertAction(this.dialog, error.error?.message ?? error.message, hasBackdrop);
   }

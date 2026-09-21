@@ -5,6 +5,7 @@ import { Dashboard } from './pages/dashboard/dashboard';
 import { Instructors } from './pages/instructors/instructors';
 import { Login } from './pages/login/login';
 
+/** The login page at the root. Every other page needs a login. */
 export const routes: Routes = [
   { path: '', component: Login, pathMatch: 'full', canActivate: [guestGuard] },
   { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },

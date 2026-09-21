@@ -1,3 +1,4 @@
+/** Class routes. Anyone logged in can read them, and only a Manager can create, edit, or delete. */
 import { Router } from 'express';
 import * as classController from '../controllers/class.controller';
 import { authenticate, authorize } from '../../middleware/auth';

@@ -22,6 +22,7 @@ export interface IClass extends Document {
   createdAt: Date;
 }
 
+/** A class on the weekly schedule, taught by one instructor (referenced by their readable ID, such as I00001). */
 const classSchema = new Schema<IClass>(
   {
     instructorId: {

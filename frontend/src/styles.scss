@@ -48,6 +48,7 @@ mat-sidenav .mat-drawer-inner-container {
   backdrop-filter: blur(12px);
 }
 
+/* Hides a dialog without closing it, so its form keeps what was typed. */
 .dialog-hidden {
   visibility: hidden;
 }
@@ -57,6 +58,7 @@ mat-sidenav .mat-drawer-inner-container {
   backdrop-filter: blur(12px);
 }
 
+/* Stops the browser's autofill highlight from painting inside the fields. */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,

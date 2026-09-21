@@ -5,6 +5,7 @@ import { API_URL } from './auth.service';
 
 export type ClassInput = Omit<YogaClass, '_id' | 'isPublished' | 'createdAt' | 'updatedAt'>;
 
+/** API calls for classes. */
 @Injectable({ providedIn: 'root' })
 export class ClassService {
   private readonly http = inject(HttpClient);

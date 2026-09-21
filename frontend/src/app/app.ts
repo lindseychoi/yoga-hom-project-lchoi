@@ -6,6 +6,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { AuthService } from './services/auth.service';
 
+/** The app shell. The sidebar, the logout button, and the gradient background only appear once the user is logged in. */
 @Component({
   selector: 'app-root',
   imports: [MatButtonModule, MatIconModule, MatListModule, MatSidenavModule, RouterLink, RouterOutlet],

@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { AuthService } from '../../services/auth.service';
 
+/** The public landing page. "Login" opens a card with the login form, and a successful login goes to the schedule. */
 @Component({
   selector: 'app-login',
   imports: [ReactiveFormsModule, MatFormFieldModule, MatIconModule, MatInputModule, MatButtonModule],

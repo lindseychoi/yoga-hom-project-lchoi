@@ -1,3 +1,4 @@
+/** One-off script that creates the Manager login from the SEED_MANAGER_* variables, or resets that Manager's password. */
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';

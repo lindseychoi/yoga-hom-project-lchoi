@@ -1,4 +1,4 @@
-# Studio Yoga 'Hom — Project Report (Part 1)
+# Project Report (Part 1)<br>Studio Yoga 'Hom
 
 Course: ACS-5423-999, Fall 2026
 
@@ -8,15 +8,13 @@ Live application: https://lindsey-c-yoga-project-21bd18fc0ab6.herokuapp.com/
 
 Source code: https://github.com/lindseychoi/yoga-hom-project-lchoi
 
----
-
 ## 1. Introduction
 
 Yoga Hom Studio is a small yoga studio in Pittsburgh, PA. It keeps its records on paper: instructors, customers, the class schedule, package sales, and attendance. Paper records are slow to search and easy to get wrong, and they can't produce the reports the studio needs, such as package sales, instructor check-ins, and monthly teacher pay.
 
 Studio Yoga 'Hom is a web application that replaces those records. It has two kinds of users. A Manager runs the studio's data: instructors, classes, packages, customers, sales, and reports. An Instructor records attendance for their own classes. Customers are records the Manager keeps. They never log in.
 
-Part 1 calls for a deployed application with at least two use cases, plus this report. I built use case 1 (add an instructor) and use case 2 (add a class). Both work on the live site behind a secure login, with access split by role. The app runs on Heroku with a MongoDB Atlas database, and a GitHub Actions pipeline builds and tests every change. The remaining use cases are designed in this report and planned for Part 2.
+Part 1 calls for a deployed application with at least two use cases, plus this report. I built use case 1 (add an instructor) and use case 2 (add a class). Both work on the live site behind a secure login with role-based access rules. The app runs on Heroku with a MongoDB Atlas database, and a GitHub Actions pipeline builds and tests every change. The remaining use cases are designed in this report and planned for Part 2.
 
 ### 1.1 Technology stack
 
@@ -30,8 +28,6 @@ Part 1 calls for a deployed application with at least two use cases, plus this r
 | Hosting | One Heroku dyno. Express serves the API and the built Angular app |
 
 The assignment specifies the MERN stack. I used Angular instead of React, with the instructor's approval by email on Sunday, September 6, 2026.
-
----
 
 ## 2. Requirements and use cases
 
@@ -71,24 +67,16 @@ The Manager adds a class to the weekly schedule with an instructor, a day and ti
 4. If the slot is taken, the server refuses it and says so, for example "A class is already scheduled on Tuesday at 14:22". The form stays open so the Manager can pick another time.
 5. Otherwise the class is saved and shows up in the class table and on the weekly schedule.
 
-The server enforces these rules: the instructor must exist, the day is Monday through Sunday, the time is a 24-hour `HH:mm` value, the class type is General or Special, and the pay rate can't be negative. A database index also guarantees one class per slot, even if two Managers save at the same moment.
-
-Not built yet: suggesting open slots when there's a conflict, and sending the confirmation message to the Manager and the instructor. Both are planned for Part 2.
-
 ### 2.4 Access control
 
-<!-- VERIFY BEFORE SUBMITTING: Instructor login accounts must exist and work on the live site, and this section must match what a logged-in Instructor can actually do. Delete this note once checked. -->
-
-Both roles sign in with an email and password. Every instructor and class route needs a valid login. Only the Manager can create, edit, or delete. An Instructor signs in with their own account and can read instructors and classes, but can't change them. A request with no token or a bad token gets a 401 response, and a request without permission gets a 403.
-
----
+In Part 1 the only account is the Manager, created when the system was set up. The Manager signs in with an email and password. Every instructor and class route needs a valid login, and only a Manager can create, edit, or delete. The Instructor role is already part of these rules: an Instructor account could read data but not change it. Creating Instructor accounts is planned for Part 2, along with attendance. A request with no token or a bad token gets a 401 response, and a request without permission gets a 403.
 
 ## 3. Architecture
 
-The repository has two folders, `frontend/` for the Angular app and `backend/` for the Express API. The browser talks to the API over HTTPS, and the API stores everything in MongoDB. In production one Heroku dyno runs the Express server, which also serves the built Angular files, so there's a single thing to deploy.
+The repository has two folders, `frontend/` for the Angular app and `backend/` for the Express API. The browser talks to the API over HTTPS, and the API stores everything in MongoDB. In production one Heroku dyno runs the Express server, which also serves the built Angular files, so there's a single artifact to deploy.
 
 ```mermaid
-graph TB
+graph LR
     subgraph Browser["Browser"]
         Pages["Pages (routed components)"]
         Svc["Angular services and auth interceptor"]
@@ -117,7 +105,7 @@ The pages are Login, This Week (the dashboard), Instructors, and Classes. Each p
 
 ### 3.3 Authentication
 
-The user sends an email and password to `POST /api/v1/auth/login`. The server checks the password against its bcrypt hash and returns a token that carries the user's ID and role and expires after 8 hours. The Angular app stores the token, and the interceptor sends it on every request as `Authorization: Bearer <token>`. The server verifies the token's signature, and routes that change data also check that the role is Manager.
+The user sends an email and password to `POST /api/v1/auth/login`. The server checks the password against its bcrypt hash and returns a token that carries the user's ID and role and expires after 8 hours. If the server rejects an expired token, the app signs the user out and returns them to the login page. The Angular app stores the token, and the interceptor sends it on every request as `Authorization: Bearer <token>`. The server verifies the token's signature, and routes that change data also check that the role is Manager.
 
 ### 3.4 API endpoints
 
@@ -132,8 +120,6 @@ All routes are under `/api/v1`.
 | GET | `/classes`, `/classes/:id` (optional `?instructorId=`) | Logged in |
 | POST, PUT, DELETE | `/classes`, `/classes/:id` | Manager |
 
----
-
 ## 4. UML models
 
 ### 4.1 Use case diagram
@@ -141,7 +127,7 @@ All routes are under `/api/v1`.
 Blue use cases are built in Part 1. Grey ones are planned for Part 2.
 
 ```mermaid
-graph LR
+graph TB
     Manager(("Manager"))
     Instructor(("Instructor"))
     subgraph App["Studio Yoga Hom"]
@@ -168,81 +154,7 @@ graph LR
 
 *Figure 2. Use case diagram.*
 
-### 4.2 Domain class diagram
-
-```mermaid
-classDiagram
-    class User {
-        +String email
-        +String passwordHash
-        +String role
-    }
-    class Instructor {
-        +String instructorId
-        +String firstName
-        +String lastName
-        +String address
-        +String phone
-        +String email
-        +String preferredContact
-    }
-    class YogaClass {
-        +String instructorId
-        +String dayOfWeek
-        +String time
-        +String classType
-        +String className
-        +Number payRate
-        +Boolean isPublished
-    }
-    class Customer {
-        +String customerId
-        +String firstName
-        +String lastName
-        +String address
-        +String phone
-        +String email
-        +String preferredContact
-        +Number classBalance
-    }
-    class Package {
-        +String packageId
-        +String packageName
-        +String packageCategory
-        +Number numberOfClasses
-        +String classType
-        +Date startDate
-        +Date endDate
-        +Number price
-    }
-    class Sale {
-        +Number amountPaid
-        +String paymentMode
-        +Date paymentDate
-        +Date validityStart
-        +Date validityEnd
-    }
-    class AttendanceRecord {
-        +Date classDate
-        +String classTime
-    }
-    class AttendanceEntry {
-        +Boolean present
-        +Boolean negativeBalance
-    }
-    Instructor "1" --> "0..*" YogaClass : teaches
-    YogaClass "1" --> "0..*" AttendanceRecord : has
-    AttendanceRecord "1" *-- "1..*" AttendanceEntry : contains
-    Customer "1" --> "0..*" AttendanceEntry : checked in
-    Customer "1" --> "0..*" Sale : buys
-    Package "1" --> "0..*" Sale : sold as
-```
-
-*Figure 3. Domain class diagram.*
-
-`User`, `Instructor`, and `YogaClass` are built. The rest are designed for Part 2.
-
-### 4.3 Data model (ERD)
+### 4.2 Data model (ERD)
 
 ```mermaid
 erDiagram
@@ -330,11 +242,11 @@ erDiagram
     PACKAGE ||--o{ SALE : sold-as
 ```
 
-*Figure 4. Data model (ERD).*
+*Figure 3. Data model (ERD).*
 
-The `COUNTER` collection generates the readable IDs. Each kind of record has one counter document that goes up by one for every new record, which gives IDs like `I00001` and `I00002`.
+`USER`, `INSTRUCTOR`, and `YOGA_CLASS` are built. The rest are designed for Part 2. The `COUNTER` collection generates the readable IDs. Each kind of record has one counter document that goes up by one for every new record, which gives IDs like `I00001` and `I00002`.
 
-### 4.4 Sequence diagram: UC1, Add an instructor
+### 4.3 Sequence diagram: UC1, Add an instructor
 
 ```mermaid
 sequenceDiagram
@@ -361,9 +273,9 @@ sequenceDiagram
     UI-->>M: Show the instructor in the table
 ```
 
-*Figure 5. Sequence diagram for UC1, Add an instructor.*
+*Figure 4. Sequence diagram for UC1, Add an instructor.*
 
-### 4.5 Sequence diagram: UC2, Add a class
+### 4.4 Sequence diagram: UC2, Add a class
 
 ```mermaid
 sequenceDiagram
@@ -392,9 +304,9 @@ sequenceDiagram
     end
 ```
 
-*Figure 6. Sequence diagram for UC2, Add a class.*
+*Figure 5. Sequence diagram for UC2, Add a class.*
 
-### 4.6 Deployment diagram
+### 4.5 Deployment diagram
 
 ```mermaid
 graph LR
@@ -408,9 +320,7 @@ graph LR
     Express -->|"Mongoose over TLS"| Atlas[("MongoDB Atlas")]
 ```
 
-*Figure 7. Deployment diagram.*
-
----
+*Figure 6. Deployment diagram.*
 
 ## 5. Design decisions
 
@@ -430,35 +340,31 @@ graph LR
 | One Heroku dyno serving the API and the built Angular app | One app and one URL, with no cross-origin setup | Hosting the frontend and backend separately |
 | GitHub Actions for CI, Heroku automatic deploys for CD | No deploy credentials stored in GitHub, and nothing deploys unless the build passes | A deploy step inside the workflow |
 
----
-
 ## 6. Implementation and user interface
 
 The look is a soft five-color palette kept in one SCSS file, with one block typeface throughout. The landing page is a full-screen photo with the studio name, a tagline, and a Login link that opens a translucent login card. Once logged in, the app has a gradient background, a translucent sidebar that shows the signed-in role (for example "MANAGER at YOGA HOM"), and a translucent content panel. The screens use Material tables, dialogs, and form fields. Text and spacing scale with the window, and the weekly schedule drops from seven columns to one on narrow windows. The layout isn't fully tuned for small phone screens yet.
 
 ![Landing page](../landing-page.png)
 
-*Figure 8. Landing page.*
+*Figure 7. Landing page.*
 
 ![Login card](../login-page.png)
 
-*Figure 9. Login card.*
+*Figure 8. Login card.*
 
 ![Weekly schedule](../dashboard.png)
 
-*Figure 10. This Week, the weekly class schedule, with today's column highlighted.*
+*Figure 9. This Week, the weekly class schedule, with today's column highlighted.*
 
 ![Instructors](../instructors.png)
 
-*Figure 11. Instructors page, where the Manager adds, edits, and deletes instructors.*
+*Figure 10. Instructors page, where the Manager adds, edits, and deletes instructors.*
 
 ![Classes](../classes.png)
 
-*Figure 12. Classes page, where the Manager schedules classes.*
+*Figure 11. Classes page, where the Manager schedules classes.*
 
 The Instructors and Classes pages are tables with Add, Edit, and Delete. The form opens as a dialog. On the Classes page, a time-slot conflict shows the server's message and leaves the form open so nothing has to be retyped.
-
----
 
 ## 7. CI/CD and deployment
 
@@ -468,21 +374,15 @@ Heroku is connected to the repository with automatic deploys from `main`. When a
 
 The live database is a MongoDB Atlas free-tier cluster with a dedicated database user. Logging in on the live site requires a Manager account, which I created with a seed script after the first deploy.
 
----
-
 ## 8. Testing
 
 CI builds both apps and runs the tests on every change, which catches compile errors before they deploy. The frontend has two unit tests: one checks that the app starts, and one checks that a logged-out visitor doesn't get the logged-in layout. The backend has no automated tests yet. I tested login, instructors, and classes by hand in the browser and with an API client, including failed logins and requests without a token. Automated tests for ID generation, the class conflict rule, and access control are the first thing I'd add in Part 2.
-
----
 
 ## 9. Use of AI
 
 The course allows AI assistance, which I confirmed with the instructor. I used Claude Code as a pair-programming partner for planning, scaffolding, and implementation. I set ground rules in the repository (`CLAUDE.md`): it had to ask before changing files, couldn't add packages without asking, and had to keep changes small. I reviewed each change before it went in and ran the results myself.
 
 The design decisions were mine, and several went against its first suggestion. I rejected a large monorepo setup for two plain folders. I rejected splitting the app across several free hosts, because the assignment calls for one deployment. I chose Angular Material over hand-built CSS and directed the look of every page, including layout, colors, fonts, and wording. I dropped a separate validation library because it repeated what the database schemas already enforce. I reverted to one instructor per class after checking the requirements, which say "Instructor Id" in the singular. I chose Heroku's automatic deploys over a deploy step in the workflow. The earlier decisions are logged in `PLAN.md`, section 11.
-
----
 
 ## 10. Limitations and next steps
 
@@ -491,10 +391,11 @@ Still to build for Part 2:
 - Use cases 3 to 7: packages, customers, sales, attendance, and the four reports.
 - Sending the welcome and check-in messages.
 - Suggesting open time slots when a class conflicts.
+- Instructor accounts, so instructors can sign in to record attendance.
 
 Known gaps:
 
 - Test coverage is thin, and the backend has none.
-- The layout isn't tuned for small phones, and the frontend bundle is over the default size budget.
+- The layout isn't tuned for small phones.
 - The landing photo is large and slows the first load.
 - There's no sign-up or password reset. Accounts are created by an administrator.
