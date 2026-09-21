@@ -53,6 +53,5 @@ mat-nav-list {
   top: 1rem;
   right: 1rem;
   z-index: 1;
-  --mat-button-text-label-text-font: #{vars.$font-script};
-  --mat-button-text-label-text-size: 2rem;
+  --mat-button-text-label-text-font: #{vars.$font-sans};
 }

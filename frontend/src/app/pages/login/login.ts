@@ -12,11 +12,6 @@ import { AuthService } from '../../services/auth.service';
   imports: [ReactiveFormsModule, MatFormFieldModule, MatIconModule, MatInputModule, MatButtonModule],
   template: `
     <img class="background" src="landing-page.png" alt="" />
-    <h1 class="wordmark">YOGA<br />HOM</h1>
-    @if (!showForm()) {
-      <button mat-button type="button" class="toggle" (click)="showForm.set(true)">Log in</button>
-    }
-
     @if (showForm()) {
       <form class="card" [formGroup]="form" (ngSubmit)="submit()">
         <button mat-icon-button type="button" class="close" aria-label="Close" (click)="showForm.set(false)">
@@ -36,9 +31,13 @@ import { AuthService } from '../../services/auth.service';
         }
         <button mat-flat-button type="submit" [disabled]="form.invalid">Log in</button>
       </form>
+    } @else {
+      <div class="hero">
+        <h1 class="title">STUDIO YOGA 'HOM</h1>
+        <p class="tagline">Come as you are. Leave lighter.</p>
+        <button mat-button type="button" (click)="showForm.set(true)">Login</button>
+      </div>
     }
-
-    <p class="tagline">Come as you are. Leave lighter.</p>
   `,
   styles: `
     @use '../../../styles/variables' as vars;
@@ -58,26 +57,41 @@ import { AuthService } from '../../services/auth.service';
       object-fit: cover;
     }
 
-    .wordmark {
+    .hero {
+      --hero-color: rgb(255 255 255 / 0.65);
       position: absolute;
-      top: 2rem;
-      left: 2rem;
-      margin: 0;
-      font-family: vars.$font-sans;
-      font-size: 5rem;
-      font-weight: 500;
-      line-height: 0.9;
-      color: rgb(255 255 255 / 0.4);
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 22vh 1rem 1rem;
+      text-align: center;
     }
 
-    .toggle {
-      position: absolute;
-      top: 2rem;
-      right: 2rem;
-      --mat-button-text-label-text-font: #{vars.$font-script};
-      --mat-button-text-label-text-size: 2rem;
-      --mat-button-text-label-text-color: white;
-      --mat-button-text-state-layer-color: white;
+    .title {
+      margin: 0;
+      font-family: vars.$font-sans;
+      font-size: clamp(3rem, 10vw, 9rem);
+      font-weight: 700;
+      line-height: 1;
+      color: var(--hero-color);
+    }
+
+    .tagline {
+      margin: 1rem 0 0;
+      font-family: vars.$font-sans;
+      font-size: clamp(1rem, 2.5vw, 2rem);
+      color: var(--hero-color);
+    }
+
+    .hero button {
+      margin-top: 1.5rem;
+      --mat-button-text-label-text-transform: uppercase;
+      --mat-button-text-label-text-font: #{vars.$font-sans};
+      --mat-button-text-label-text-size: clamp(1rem, 2.5vw, 2rem);
+      --mat-button-text-label-text-color: var(--hero-color);
+      --mat-button-text-state-layer-color: var(--hero-color);
     }
 
     .card {
@@ -111,18 +125,7 @@ import { AuthService } from '../../services/auth.service';
     }
 
     .card button[type='submit'] {
-      --mat-button-filled-label-text-font: #{vars.$font-script};
-      --mat-button-filled-label-text-size: 1.5rem;
-    }
-
-    .tagline {
-      position: absolute;
-      right: 2rem;
-      bottom: 2rem;
-      margin: 0;
-      font-family: vars.$font-script;
-      font-size: 2.5rem;
-      color: white;
+      --mat-button-filled-label-text-font: #{vars.$font-sans};
     }
   `,
 })
