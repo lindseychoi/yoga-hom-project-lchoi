@@ -9,6 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { Observable } from 'rxjs';
+import { confirmAction } from '../../components/confirm-dialog';
 import { CLASS_TYPES, DAYS_OF_WEEK, YogaClass } from '../../models/class.model';
 import { Instructor } from '../../models/instructor.model';
 import { ClassService } from '../../services/class.service';
@@ -198,12 +199,17 @@ export class Classes {
   }
 
   protected remove(yogaClass: YogaClass) {
-    if (!confirm(`Delete ${yogaClass.className} on ${yogaClass.dayOfWeek} at ${yogaClass.time}?`)) {
-      return;
-    }
-    this.classService.remove(yogaClass._id).subscribe({
-      next: () => this.load(),
-      error: (error) => this.showError(error),
+    confirmAction(this.dialog, {
+      message: `Delete ${yogaClass.className} on ${yogaClass.dayOfWeek} at ${yogaClass.time}?`,
+      confirmLabel: 'Delete',
+    }).subscribe((ok) => {
+      if (!ok) {
+        return;
+      }
+      this.classService.remove(yogaClass._id).subscribe({
+        next: () => this.load(),
+        error: (error) => this.showError(error),
+      });
     });
   }
 

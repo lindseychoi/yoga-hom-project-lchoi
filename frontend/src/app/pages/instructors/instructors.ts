@@ -9,6 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { Observable } from 'rxjs';
+import { confirmAction } from '../../components/confirm-dialog';
 import { Instructor } from '../../models/instructor.model';
 import { InstructorService } from '../../services/instructor.service';
 
@@ -155,12 +156,25 @@ export class Instructors {
     }
     this.service.exists(data.firstName, data.lastName).subscribe({
       next: ({ exists }) => {
-        const proceed =
-          !exists ||
-          confirm(`An instructor named ${data.firstName} ${data.lastName} already exists. Save anyway?`);
-        if (proceed) {
+        if (!exists) {
           this.persist(this.service.create(data));
+          return;
         }
+        this.dialogRef?.addPanelClass('dialog-hidden');
+        confirmAction(
+          this.dialog,
+          {
+            message: `An instructor named ${data.firstName} ${data.lastName} already exists. Save anyway?`,
+            confirmLabel: 'Save anyway',
+          },
+          false
+        ).subscribe((ok) => {
+          if (ok) {
+            this.persist(this.service.create(data));
+          } else {
+            this.dialogRef?.removePanelClass('dialog-hidden');
+          }
+        });
       },
       error: (error) => this.showError(error),
     });
@@ -172,17 +186,25 @@ export class Instructors {
         this.dialogRef?.close();
         this.load();
       },
-      error: (error) => this.showError(error),
+      error: (error) => {
+        this.dialogRef?.removePanelClass('dialog-hidden');
+        this.showError(error);
+      },
     });
   }
 
   protected remove(instructor: Instructor) {
-    if (!confirm(`Delete ${instructor.firstName} ${instructor.lastName}?`)) {
-      return;
-    }
-    this.service.remove(instructor._id).subscribe({
-      next: () => this.load(),
-      error: (error) => this.showError(error),
+    confirmAction(this.dialog, {
+      message: `Delete ${instructor.firstName} ${instructor.lastName}?`,
+      confirmLabel: 'Delete',
+    }).subscribe((ok) => {
+      if (!ok) {
+        return;
+      }
+      this.service.remove(instructor._id).subscribe({
+        next: () => this.load(),
+        error: (error) => this.showError(error),
+      });
     });
   }
 
