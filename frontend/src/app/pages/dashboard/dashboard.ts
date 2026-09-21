@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
+import { alertAction } from '../../components/confirm-dialog';
 import { DAYS_OF_WEEK, YogaClass } from '../../models/class.model';
 import { Instructor } from '../../models/instructor.model';
 import { ClassService } from '../../services/class.service';
@@ -78,7 +79,7 @@ import { InstructorService } from '../../services/instructor.service';
   `,
 })
 export class Dashboard {
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
 
   protected readonly today = DAYS_OF_WEEK[(new Date().getDay() + 6) % 7];
   protected readonly classes = signal<YogaClass[]>([]);
@@ -111,6 +112,6 @@ export class Dashboard {
   }
 
   private showError(error: HttpErrorResponse) {
-    this.snackBar.open(error.error?.message ?? error.message, 'Close', { duration: 5000 });
+    alertAction(this.dialog, error.error?.message ?? error.message);
   }
 }

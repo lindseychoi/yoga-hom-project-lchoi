@@ -6,10 +6,9 @@ import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dial
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { Observable } from 'rxjs';
-import { confirmAction } from '../../components/confirm-dialog';
+import { alertAction, confirmAction } from '../../components/confirm-dialog';
 import { CLASS_TYPES, DAYS_OF_WEEK, YogaClass } from '../../models/class.model';
 import { Instructor } from '../../models/instructor.model';
 import { ClassService } from '../../services/class.service';
@@ -131,7 +130,6 @@ export class Classes {
   private readonly classService = inject(ClassService);
   private readonly instructorService = inject(InstructorService);
   private readonly dialog = inject(MatDialog);
-  private readonly snackBar = inject(MatSnackBar);
   private readonly formDialog = viewChild.required<TemplateRef<unknown>>('formDialog');
   private dialogRef?: MatDialogRef<unknown>;
 
@@ -194,7 +192,12 @@ export class Classes {
         this.dialogRef?.close();
         this.load();
       },
-      error: (error) => this.showError(error),
+      error: (error) => {
+        this.dialogRef?.addPanelClass('dialog-hidden');
+        this.showError(error, false).subscribe(() =>
+          this.dialogRef?.removePanelClass('dialog-hidden')
+        );
+      },
     });
   }
 
@@ -213,7 +216,7 @@ export class Classes {
     });
   }
 
-  private showError(error: HttpErrorResponse) {
-    this.snackBar.open(error.error?.message ?? error.message, 'Close', { duration: 5000 });
+  private showError(error: HttpErrorResponse, hasBackdrop = true) {
+    return alertAction(this.dialog, error.error?.message ?? error.message, hasBackdrop);
   }
 }

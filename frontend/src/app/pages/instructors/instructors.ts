@@ -6,10 +6,9 @@ import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dial
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { Observable } from 'rxjs';
-import { confirmAction } from '../../components/confirm-dialog';
+import { alertAction, confirmAction } from '../../components/confirm-dialog';
 import { Instructor } from '../../models/instructor.model';
 import { InstructorService } from '../../services/instructor.service';
 
@@ -115,7 +114,6 @@ import { InstructorService } from '../../services/instructor.service';
 export class Instructors {
   private readonly service = inject(InstructorService);
   private readonly dialog = inject(MatDialog);
-  private readonly snackBar = inject(MatSnackBar);
   private readonly formDialog = viewChild.required<TemplateRef<unknown>>('formDialog');
   private dialogRef?: MatDialogRef<unknown>;
 
@@ -187,8 +185,10 @@ export class Instructors {
         this.load();
       },
       error: (error) => {
-        this.dialogRef?.removePanelClass('dialog-hidden');
-        this.showError(error);
+        this.dialogRef?.addPanelClass('dialog-hidden');
+        this.showError(error, false).subscribe(() =>
+          this.dialogRef?.removePanelClass('dialog-hidden')
+        );
       },
     });
   }
@@ -208,7 +208,7 @@ export class Instructors {
     });
   }
 
-  private showError(error: HttpErrorResponse) {
-    this.snackBar.open(error.error?.message ?? error.message, 'Close', { duration: 5000 });
+  private showError(error: HttpErrorResponse, hasBackdrop = true) {
+    return alertAction(this.dialog, error.error?.message ?? error.message, hasBackdrop);
   }
 }
