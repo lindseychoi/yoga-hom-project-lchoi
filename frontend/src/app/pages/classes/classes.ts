@@ -43,15 +43,20 @@ import { InstructorService } from '../../services/instructor.service';
       </ng-container>
       <ng-container matColumnDef="className">
         <th mat-header-cell *matHeaderCellDef>Class</th>
-        <td mat-cell *matCellDef="let c">{{ c.className }}</td>
+        <td mat-cell *matCellDef="let c">
+          {{ c.className }}
+          @if (!c.isPublished) {
+            (Draft)
+          }
+        </td>
       </ng-container>
       <ng-container matColumnDef="instructor">
         <th mat-header-cell *matHeaderCellDef>Instructor</th>
         <td mat-cell *matCellDef="let c">{{ instructorNames().get(c.instructorId) ?? c.instructorId }}</td>
       </ng-container>
-      <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef>Status</th>
-        <td mat-cell *matCellDef="let c">{{ c.isPublished ? 'Published' : 'Draft' }}</td>
+      <ng-container matColumnDef="payRate">
+        <th mat-header-cell *matHeaderCellDef>Pay rate</th>
+        <td mat-cell *matCellDef="let c">{{ c.payRate }}</td>
       </ng-container>
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef></th>
@@ -151,7 +156,7 @@ export class Classes {
 
   protected readonly days = DAYS_OF_WEEK;
   protected readonly types = CLASS_TYPES;
-  protected readonly columns = ['dayOfWeek', 'time', 'className', 'instructor', 'status', 'actions'];
+  protected readonly columns = ['dayOfWeek', 'time', 'className', 'instructor', 'payRate', 'actions'];
   protected readonly classes = signal<YogaClass[]>([]);
   protected readonly instructors = signal<Instructor[]>([]);
   protected readonly instructorNames = computed(
