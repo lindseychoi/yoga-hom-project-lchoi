@@ -1,4 +1,4 @@
-# Project Report (Part 1)<br>Studio Yoga 'Hom
+# Project Report (Part 2)<br>Studio Yoga 'Hom
 
 Course: ACS-5423-999, Fall 2026
 
@@ -14,7 +14,7 @@ Yoga Hom Studio is a small yoga studio in Pittsburgh, PA. It keeps its records o
 
 Studio Yoga 'Hom is a web application that replaces those records. It has two kinds of users. A Manager runs the studio's data: instructors, classes, packages, customers, sales, and reports. An Instructor records attendance for their own classes. Customers are records the Manager keeps. They never log in.
 
-Part 1 calls for a deployed application with at least two use cases, plus this report. I built use case 1 (add an instructor) and use case 2 (add a class). Both work on the live site behind a secure login with role-based access rules. The app runs on Heroku with a MongoDB Atlas database, and a GitHub Actions pipeline builds and tests every change. The remaining use cases are designed in this report and planned for Part 2.
+Part 2 calls for the complete application, deployed on the cloud with a CI/CD pipeline, plus an updated report. All seven use cases from the requirements are built, along with the other actions in the use-case diagram: publishing the schedule, viewing attendance, an instructor's own schedule, and their self-performance report. The app runs on Heroku with a MongoDB Atlas database. GitHub Actions builds and tests every change, and Heroku deploys `main` automatically.
 
 ### 1.1 Technology stack
 
@@ -33,29 +33,32 @@ The assignment specifies the MERN stack. I used Angular instead of React, with t
 
 ### 2.1 Use case summary
 
-| ID | Use case | Actor | Part 1 status |
-|----|----------|-------|---------------|
+| ID | Use case | Actor | Status |
+|----|----------|-------|--------|
 | UC1 | Add an instructor | Manager | Implemented |
-| UC2 | Add a class | Manager | Implemented |
-| UC3 | Add a package | Manager | Planned for Part 2 |
-| UC4 | Add a customer | Manager | Planned for Part 2 |
-| UC5 | Record a sale | Manager | Planned for Part 2 |
-| UC6 | Record class attendance | Instructor | Planned for Part 2 |
-| UC7 | Generate studio reports | Manager | Planned for Part 2 |
+| UC2 | Add a class and publish the schedule | Manager | Implemented |
+| UC3 | Add a package | Manager | Implemented |
+| UC4 | Add a customer | Manager | Implemented |
+| UC5 | Record a sale | Manager | Implemented |
+| UC6 | Record and view class attendance | Instructor, Manager | Implemented |
+| UC7 | Generate studio reports | Manager | Implemented |
+| UC8 | View class schedule | Instructor | Implemented |
+| UC9 | Self-performance report | Instructor | Implemented |
+
+The Manager can also edit and delete instructors, classes, packages, and customers.
 
 ### 2.2 UC1: Add an instructor
 
 The Manager adds an instructor with a first and last name, address, phone, email, and a preferred way to be contacted (phone or email). As built:
 
 1. The Manager opens the Instructors page and chooses Add instructor.
-2. The Manager fills in the details. First and last name are required, and the email has to look like an email address.
+2. The Manager fills in the details. Every field is required, the phone and email have to be valid, and the form shows an error under any field that isn't.
 3. On save, the app checks whether an instructor with the same name already exists. If so, it asks the Manager to confirm, since two people can share a name.
 4. The server generates the instructor ID. It starts with `I`, for example `I00003`, so it can't be confused with a customer ID, which starts with `C`.
 5. The server validates and saves the record, and the instructor appears in the table.
+6. The instructor is sent a welcome message on their preferred contact: "Welcome to Yoga'Hom! Your instructor id is I00003." Messages are simulated (see section 5).
 
-The Manager can also edit or delete an instructor from the same table.
-
-Not built yet: the welcome message from the requirements ("Welcome to Yoga'Hom! ... Your instructor id is ..."). Sending notifications is planned for Part 2.
+The Manager can also set a login password for the instructor, which creates their account, and can reset it later from the instructor's Edit form. The Manager can edit or delete an instructor from the same table.
 
 ### 2.3 UC2: Add a class
 
@@ -64,12 +67,50 @@ The Manager adds a class to the weekly schedule with an instructor, a day and ti
 1. The Manager opens the Classes page and chooses Add class.
 2. The Manager picks an instructor from the existing instructors and fills in the day, time, class type, name, and pay rate.
 3. The server checks that the instructor exists and that no other class is at the same day and time, since only one class can run at any time.
-4. If the slot is taken, the server refuses it and says so, for example "A class is already scheduled on Tuesday at 14:22". The form stays open so the Manager can pick another time.
-5. Otherwise the class is saved and shows up in the class table and on the weekly schedule.
+4. If the slot is taken, the server refuses it and suggests the next free times that day, for example "A class is already scheduled on Monday at 10:00. Available times that day: 11:00, 12:00, 14:00". The form stays open.
+5. Otherwise the class is saved as a draft, shown as "(Draft)" in the class table.
+6. The Manager clicks Publish. The class appears on the instructor's schedule, and a confirmation goes to the instructor and the Manager: "New class scheduled: Gentle Yoga on Monday at 10:10."
 
-### 2.4 Access control
+### 2.4 UC3: Add a package
 
-In Part 1 the only account is the Manager, created when the system was set up. The Manager signs in with an email and password. Every instructor and class route needs a valid login, and only a Manager can create, edit, or delete. The Instructor role is already part of these rules: an Instructor account could read data but not change it. Creating Instructor accounts is planned for Part 2, along with attendance. A request with no token or a bad token gets a 401 response, and a request without permission gets a 403.
+The Manager adds a package with a name, a category (General or Senior), the number of classes (1, 4, 10, or unlimited), a class type (General or Special), start and end dates, and a price. The form and the server check the allowed values, that the price isn't negative, and that the end date is after the start date. The server generates the package ID, for example `PKG001`, and the app confirms "Saved package PKG001." A package that has been sold can't be deleted.
+
+### 2.5 UC4: Add a customer
+
+This works like UC1. The app warns about a duplicate name, and the server generates an ID starting with `C`, for example `C00001`, and sets the class balance to 0. The balance can't be edited by hand: only sales and attendance change it. The customer is sent "Welcome to Yoga'Hom! Your customer id is C00001." A customer with sales or attendance can't be deleted.
+
+### 2.6 UC5: Record a sale
+
+1. The Manager opens Sales and chooses Record sale.
+2. The Manager picks a customer and a package. The package type fills in automatically: class type, category, number of classes, and price. Only packages that haven't ended are listed.
+3. The Manager enters the amount paid, the payment mode (Cash, Card, or Check), the payment date and time (defaulting to now), and the validity dates (defaulting to today and the package's end date).
+4. The form and the server check that the amount equals the package price, the payment time is within a day of now, and the validity dates fall within the package's dates, end after they start, and aren't already over.
+5. The customer's balance goes up by the package's number of classes. Unlimited packages leave it unchanged. The app shows the new balance.
+
+### 2.7 UC6: Record class attendance
+
+1. An Instructor, or the Manager, opens Attendance and chooses Record attendance. Instructors only see their own classes.
+2. The date and time default to now and can be changed. The weekday shows under the date, and a warning appears if the date and time don't match the class schedule.
+3. The user picks the customers who attended. Each is shown with their balance.
+4. On save, the server checks each customer: whether they have a class left, and whether their package's class type matches the class. If anything is off, the app lists the problems and asks "Save anyway?". A customer saved without a class left goes to a negative balance and is flagged.
+5. Each balance goes down by one (unlimited packages don't change), and each customer is sent: "Hello Jane! You are checked-in for a class on 12/10/26 at 10:10 am. Your class-balance is 3."
+
+The same page lists past attendance. The Manager sees every class, and an Instructor sees their own.
+
+### 2.8 UC7 to UC9: Reports and schedule
+
+The Reports page has four tabs for the Manager:
+
+- **Package sales:** each package, how many were sold, and the total revenue.
+- **Instructors:** each instructor's classes and their total check-ins.
+- **Customers:** each customer's balance and packages, marked active, future, or expired.
+- **Teacher payment:** for a chosen month, each instructor's classes held and pay, which is the pay rate × each class session with at least one check-in.
+
+An Instructor sees only My performance: their classes held, check-ins, and pay for a chosen month (UC9). Their schedule (UC8) is This Week and the Classes page, which show only their own published classes.
+
+### 2.9 Access control
+
+The Manager account is created with a seed script. The Manager creates Instructor accounts by setting a login password when adding an instructor, and can reset it at any time by entering a new one when editing them. The password is stored as a bcrypt hash on a login linked to the instructor's ID. Every route needs a valid login. The Manager can do everything. An Instructor can read the customer list, see their own published classes, record and view attendance for their own classes, and see their own performance report. The server enforces these rules, and the app hides the pages and buttons a user can't use. A request with no token or a bad token gets a 401 response, and a request without permission gets a 403.
 
 ## 3. Architecture
 
@@ -105,7 +146,7 @@ The pages are Login, This Week (the dashboard), Instructors, and Classes. Each p
 
 ### 3.3 Authentication
 
-The user sends an email and password to `POST /api/v1/auth/login`. The server checks the password against its bcrypt hash and returns a token that carries the user's ID and role and expires after 8 hours. If the server rejects an expired token, the app signs the user out and returns them to the login page. The Angular app stores the token, and the interceptor sends it on every request as `Authorization: Bearer <token>`. The server verifies the token's signature, and routes that change data also check that the role is Manager.
+The user sends an email and password to `POST /api/v1/auth/login`. The server checks the password against its bcrypt hash and returns a token that carries the user's ID and role and expires after 8 hours. If the server rejects an expired token, the app signs the user out and returns them to the login page. The Angular app stores the token, and the interceptor sends it on every request as `Authorization: Bearer <token>`. The server verifies the token's signature, and routes that change data also check that the role is Manager. For an Instructor, the token also carries their instructor ID, which the server uses to limit them to their own classes.
 
 ### 3.4 API endpoints
 
@@ -117,14 +158,21 @@ All routes are under `/api/v1`.
 | GET | `/health` | Public |
 | GET | `/instructors`, `/instructors/:id`, `/instructors/check-duplicate` | Logged in |
 | POST, PUT, DELETE | `/instructors`, `/instructors/:id` | Manager |
-| GET | `/classes`, `/classes/:id` (optional `?instructorId=`) | Logged in |
-| POST, PUT, DELETE | `/classes`, `/classes/:id` | Manager |
+| GET | `/classes`, `/classes/:id` | Logged in (an Instructor gets only their published classes) |
+| POST, PUT, DELETE | `/classes`, `/classes/:id`, `/classes/:id/publish` | Manager |
+| GET | `/customers`, `/customers/:id` | Logged in |
+| POST, PUT, DELETE | `/customers`, `/customers/:id`, and GET `/customers/check-duplicate` | Manager |
+| GET, POST, PUT, DELETE | `/packages`, `/packages/:id` | Manager |
+| GET, POST | `/sales` | Manager |
+| GET, POST | `/attendance` | Logged in (an Instructor only for their own classes) |
+| GET | `/reports/package-sales`, `/reports/instructors`, `/reports/customers`, `/reports/teacher-payment?month=` | Manager |
+| GET | `/reports/me?month=` | Instructor |
 
 ## 4. UML models
 
 ### 4.1 Use case diagram
 
-Blue use cases are built in Part 1. Grey ones are planned for Part 2.
+All use cases are built.
 
 ```mermaid
 graph TB
@@ -132,24 +180,25 @@ graph TB
     Instructor(("Instructor"))
     subgraph App["Studio Yoga Hom"]
         UC1["UC1 Add instructor"]
-        UC2["UC2 Add class"]
+        UC2["UC2 Add and publish class"]
         UC3["UC3 Add package"]
         UC4["UC4 Add customer"]
         UC5["UC5 Record sale"]
-        UC6["UC6 Record attendance"]
+        UC6["UC6 Record and view attendance"]
         UC7["UC7 Generate reports"]
+        UC8["UC8 View class schedule"]
+        UC9["UC9 Self-performance report"]
     end
     Manager --> UC1
     Manager --> UC2
     Manager --> UC3
     Manager --> UC4
     Manager --> UC5
+    Manager --> UC6
     Manager --> UC7
     Instructor --> UC6
-    classDef done fill:#dbe4f5,stroke:#404067
-    classDef planned fill:#eeeeee,stroke:#999999
-    class UC1,UC2 done
-    class UC3,UC4,UC5,UC6,UC7 planned
+    Instructor --> UC8
+    Instructor --> UC9
 ```
 
 *Figure 2. Use case diagram.*
@@ -163,6 +212,7 @@ erDiagram
         string email UK
         string passwordHash
         string role "Manager or Instructor"
+        string instructorId FK "Instructor logins only"
     }
     INSTRUCTOR {
         string _id PK
@@ -220,20 +270,26 @@ erDiagram
         string _id PK
         string classId FK
         string instructorId FK
-        date classDate
-        string classTime
+        date date
+        string time
     }
     ATTENDANCE_ENTRY {
-        string _id PK
-        string attendanceRecordId FK
         string customerId FK
-        boolean present
+        number balanceAfter
         boolean negativeBalance
+    }
+    NOTIFICATION {
+        string _id PK
+        string recipientId
+        string channel "phone or email"
+        string to
+        string message
     }
     COUNTER {
         string _id PK "entity name"
         number sequenceValue
     }
+    USER |o--o| INSTRUCTOR : "logs in as"
     YOGA_CLASS }o--|| INSTRUCTOR : has
     YOGA_CLASS ||--o{ ATTENDANCE_RECORD : has
     ATTENDANCE_RECORD ||--o{ ATTENDANCE_ENTRY : contains
@@ -244,7 +300,7 @@ erDiagram
 
 *Figure 3. Data model (ERD).*
 
-`USER`, `INSTRUCTOR`, and `YOGA_CLASS` are built. The rest are designed for Part 2. The `COUNTER` collection generates the readable IDs. Each kind of record has one counter document that goes up by one for every new record, which gives IDs like `I00001` and `I00002`.
+All of these are built. Attendance entries are stored inside their attendance record. `NOTIFICATION` holds the simulated messages. The `COUNTER` collection generates the readable IDs. Each kind of record has one counter document that goes up by one for every new record, which gives IDs like `I00001` and `I00002`.
 
 ### 4.3 Sequence diagram: UC1, Add an instructor
 
@@ -339,6 +395,13 @@ graph LR
 | Template and styles in one file per page | Fewer files and less boilerplate for small pages | Separate HTML and style files |
 | One Heroku dyno serving the API and the built Angular app | One app and one URL, with no cross-origin setup | Hosting the frontend and backend separately |
 | GitHub Actions for CI, Heroku automatic deploys for CD | No deploy credentials stored in GitHub, and nothing deploys unless the build passes | A deploy step inside the workflow |
+| Messages are simulated: saved and shown on screen | No email or SMS account is needed, and each message can be seen in the app | Real email or texts through a paid service |
+| One class balance per customer. A package that doesn't match the class type is a warning | Matches the paper card and keeps the balance simple | Separate General and Special balances |
+| Unlimited packages don't use up classes | An unlimited pass has nothing to count down | Counting down anyway |
+| "Current" payment time means within 24 hours of now | The requirements don't define it, and a day allows for late entry | Requiring the exact time |
+| New classes start as drafts until published | UC2 has a separate publish step, and the confirmations go out on publish | Publishing on save |
+| A package, customer, or class with sales or attendance can't be deleted | Keeps the reports and history correct | Deleting the history along with it |
+| Teacher pay = pay rate × each session with at least one check-in | Matches "based on the pay-rate and class check-ins" | Paying per check-in |
 
 ## 6. Implementation and user interface
 
@@ -364,7 +427,7 @@ The look is a soft five-color palette kept in one SCSS file, with one block type
 
 *Figure 11. Classes page, where the Manager schedules classes.*
 
-The Instructors and Classes pages are tables with Add, Edit, and Delete. The form opens as a dialog. On the Classes page, a time-slot conflict shows the server's message and leaves the form open so nothing has to be retyped.
+Part 2 adds the Packages, Customers, Sales, Attendance, and Reports pages. They follow the same pattern: a table, with forms in dialogs. Every form shows an error under each field and keeps Save disabled until it's valid, and the server checks the same rules. Instructors see a shorter sidebar: This Week, Classes, Attendance, and Reports.
 
 ## 7. CI/CD and deployment
 
@@ -376,7 +439,7 @@ The live database is a MongoDB Atlas free-tier cluster with a dedicated database
 
 ## 8. Testing
 
-CI builds both apps and runs the tests on every change, which catches compile errors before they deploy. The frontend has two unit tests: one checks that the app starts, and one checks that a logged-out visitor doesn't get the logged-in layout. The backend has no automated tests yet. I tested login, instructors, and classes by hand in the browser and with an API client, including failed logins and requests without a token. Automated tests for ID generation, the class conflict rule, and access control are the first thing I'd add in Part 2.
+CI builds both apps and runs the tests on every change, which catches compile errors before they deploy. The frontend has two unit tests: one checks that the app starts, and one checks that a logged-out visitor doesn't get the logged-in layout. The backend still has no automated tests. I tested every use case by hand, locally and on the live site, including the warning paths: duplicate names, time-slot conflicts, wrong sale amounts, schedule mismatches, negative balances, and an Instructor trying to reach Manager pages. Automated tests for these business rules are the main next step.
 
 ## 9. Use of AI
 
@@ -386,16 +449,10 @@ The design decisions were mine, and several went against its first suggestion. I
 
 ## 10. Limitations and next steps
 
-Still to build for Part 2:
-
-- Use cases 3 to 7: packages, customers, sales, attendance, and the four reports.
-- Sending the welcome and check-in messages.
-- Suggesting open time slots when a class conflicts.
-- Instructor accounts, so instructors can sign in to record attendance.
-
-Known gaps:
-
 - Test coverage is thin, and the backend has none.
+- Messages are simulated, not actually sent.
+- There's no sign-up, self-service password reset, or change-password. The Manager sets and resets instructor passwords.
+- Classes have no length, so only classes with the exact same start time conflict.
+- Attendance doesn't record each customer's package type or payment mode, which the paper sheet has.
 - The layout isn't tuned for small phones.
 - The landing photo is large and slows the first load.
-- There's no sign-up or password reset. Accounts are created by an administrator.
