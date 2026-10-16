@@ -9,8 +9,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { Observable } from 'rxjs';
 import { alertAction, confirmAction } from '../../components/confirm-dialog';
-import { Instructor } from '../../models/instructor.model';
-import { InstructorService } from '../../services/instructor.service';
+import { Instructor, PHONE_PATTERN } from '../../models/instructor.model';
+import { InstructorInput, InstructorService } from '../../services/instructor.service';
 
 /** Table of instructors with add, edit, and delete. The form opens as a dialog defined in this template. */
 @Component({
@@ -66,22 +66,27 @@ import { InstructorService } from '../../services/instructor.service';
           <mat-form-field appearance="outline">
             <mat-label>First name</mat-label>
             <input matInput formControlName="firstName" />
+            <mat-error>First name is required</mat-error>
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Last name</mat-label>
             <input matInput formControlName="lastName" />
+            <mat-error>Last name is required</mat-error>
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Address</mat-label>
             <input matInput formControlName="address" />
+            <mat-error>Address is required</mat-error>
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Phone</mat-label>
             <input matInput formControlName="phone" />
+            <mat-error>{{ form.controls.phone.hasError('required') ? 'Phone is required' : 'Phone is not valid' }}</mat-error>
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Email</mat-label>
             <input matInput type="email" formControlName="email" />
+            <mat-error>{{ form.controls.email.hasError('required') ? 'Email is required' : 'Email is not valid' }}</mat-error>
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Preferred contact</mat-label>
@@ -124,10 +129,11 @@ export class Instructors {
   protected readonly form = inject(FormBuilder).nonNullable.group({
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
-    address: [''],
-    phone: [''],
-    email: ['', Validators.email],
-    preferredContact: ['email' as Instructor['preferredContact']],
+    // Same required fields and formats the server checks
+    address: ['', Validators.required],
+    phone: ['', [Validators.required, Validators.pattern(PHONE_PATTERN)]],
+    email: ['', [Validators.required, Validators.email]],
+    preferredContact: ['email' as Instructor['preferredContact'], Validators.required],
   });
 
   constructor() {
@@ -158,7 +164,7 @@ export class Instructors {
     this.service.exists(data.firstName, data.lastName).subscribe({
       next: ({ exists }) => {
         if (!exists) {
-          this.persist(this.service.create(data));
+          this.create(data);
           return;
         }
         this.dialogRef?.addPanelClass('dialog-hidden');
@@ -171,7 +177,7 @@ export class Instructors {
           false
         ).subscribe((ok) => {
           if (ok) {
-            this.persist(this.service.create(data));
+            this.create(data);
           } else {
             this.dialogRef?.removePanelClass('dialog-hidden');
           }
@@ -181,12 +187,23 @@ export class Instructors {
     });
   }
 
+  /** Adds the instructor, then shows the new ID and the welcome message the server sent (UC1). */
+  private create(data: InstructorInput) {
+    this.persist(this.service.create(data), ({ instructor, notification }) =>
+      alertAction(
+        this.dialog,
+        `Saved instructor ${instructor.instructorId}. Message sent by ${notification.channel} to ${notification.to}: "${notification.message}"`
+      )
+    );
+  }
+
   /** Saves, closes the form, and reloads the table. On an error, shows the message and brings the form back. */
-  private persist(request: Observable<Instructor>) {
+  private persist<T>(request: Observable<T>, onSaved?: (result: T) => void) {
     request.subscribe({
-      next: () => {
+      next: (result) => {
         this.dialogRef?.close();
         this.load();
+        onSaved?.(result);
       },
       error: (error) => {
         this.dialogRef?.addPanelClass('dialog-hidden');

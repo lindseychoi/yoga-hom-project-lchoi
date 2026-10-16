@@ -22,8 +22,9 @@ export const getById = async (req: Request<{ id: string }>, res: Response, next:
 
 export const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const instructor = await instructorService.create(req.body);
-    res.status(201).json(instructor);
+    // Returns { instructor, notification } so the screen can show the welcome message that was sent
+    const result = await instructorService.create(req.body);
+    res.status(201).json(result);
   } catch (error) {
     next(error);
   }

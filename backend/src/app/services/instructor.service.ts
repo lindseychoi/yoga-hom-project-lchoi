@@ -1,5 +1,7 @@
 import { Instructor, IInstructor } from '../models/instructor.model';
 import { Counter } from '../models/counter.model';
+import { INotification } from '../models/notification.model';
+import * as notificationService from './notification.service';
 import { AppError } from '../../middleware/error-handler';
 
 /** Lists instructors, newest first. */
@@ -16,22 +18,30 @@ export const findById = async (id: string): Promise<IInstructor> => {
   return instructor;
 };
 
-/** Creates an instructor. The readable ID comes from a counter that goes up by one each time (I00001, I00002, ...). */
-export const create = async (data: Partial<IInstructor>): Promise<IInstructor> => {
+/**
+ * Creates an instructor and sends the UC1 welcome message. The readable ID comes from a counter that goes up
+ * by one each time (I00001, I00002, ...). Validation runs first so a bad form doesn't use up an ID.
+ */
+export const create = async (
+  data: Partial<IInstructor>
+): Promise<{ instructor: IInstructor; notification: INotification }> => {
+  const instructor = new Instructor(data);
+  await instructor.validate({ pathsToSkip: ['instructorId'] });
+
   const counter = await Counter.findByIdAndUpdate(
     { _id: 'instructor' },
     { $inc: { sequenceValue: 1 } },
     { new: true, upsert: true }
   );
+  instructor.instructorId = `I${String(counter.sequenceValue).padStart(5, '0')}`;
 
-  const instructorId = `I${String(counter.sequenceValue).padStart(5, '0')}`;
-
-  const instructor = new Instructor({
-    ...data,
-    instructorId,
-  });
-
-  return instructor.save();
+  const saved = await instructor.save();
+  const notification = await notificationService.send(
+    saved.instructorId,
+    saved,
+    `Welcome to Yoga'Hom! Your instructor id is ${saved.instructorId}.`
+  );
+  return { instructor: saved, notification };
 };
 
 /** Applies the changes and re-checks them against the schema. */

@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Instructor } from '../models/instructor.model';
+import { Notification } from '../models/notification.model';
 import { API_URL } from './auth.service';
 
 export type InstructorInput = Omit<Instructor, '_id' | 'instructorId' | 'createdAt' | 'updatedAt'>;
@@ -21,8 +22,9 @@ export class InstructorService {
     });
   }
 
+  /** Also returns the welcome message the server sent. */
   create(data: InstructorInput) {
-    return this.http.post<Instructor>(this.url, data);
+    return this.http.post<{ instructor: Instructor; notification: Notification }>(this.url, data);
   }
 
   update(id: string, data: InstructorInput) {

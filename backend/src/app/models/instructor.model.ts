@@ -1,4 +1,9 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { CHANNELS } from './notification.model';
+
+// Digits plus common separators: (412) 555-0100, +1 412.555.0100
+export const PHONE_PATTERN = /^[0-9()+\-.\s]{7,20}$/;
+export const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
 
 export interface IInstructor extends Document {
   instructorId: string;
@@ -7,7 +12,7 @@ export interface IInstructor extends Document {
   address: string;
   phone: string;
   email: string;
-  preferredContact: 'phone' | 'email';
+  preferredContact: (typeof CHANNELS)[number];
   createdAt: Date;
 }
 
@@ -30,24 +35,26 @@ const instructorSchema = new Schema<IInstructor>(
     },
     address: {
       type: String,
+      required: [true, 'Address is required'],
       trim: true,
-      default: '',
     },
     phone: {
       type: String,
+      required: [true, 'Phone is required'],
       trim: true,
-      default: '',
+      match: [PHONE_PATTERN, 'Phone is not valid'],
     },
     email: {
       type: String,
+      required: [true, 'Email is required'],
       trim: true,
       lowercase: true,
-      default: '',
+      match: [EMAIL_PATTERN, 'Email is not valid'],
     },
     preferredContact: {
       type: String,
-      enum: ['phone', 'email'],
-      default: 'email',
+      enum: CHANNELS,
+      required: [true, 'Preferred contact is required'],
     },
   },
   {
