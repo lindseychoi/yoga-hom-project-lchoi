@@ -1,5 +1,6 @@
 import { Package, IPackage } from '../models/package.model';
 import { Counter } from '../models/counter.model';
+import { Sale } from '../models/sale.model';
 import { AppError } from '../../middleware/error-handler';
 
 /** Lists packages, newest first. */
@@ -39,8 +40,10 @@ export const update = async (id: string, data: Partial<IPackage>): Promise<IPack
 
 /** Deletes a package, or a 404 if it doesn't exist. */
 export const remove = async (id: string): Promise<void> => {
-  const found = await Package.findByIdAndDelete(id);
-  if (!found) {
-    throw new AppError(404, 'Package not found');
+  // Keep sales history intact: a package that has been sold can't be deleted
+  const pkg = await findById(id);
+  if (await Sale.exists({ packageId: pkg.packageId })) {
+    throw new AppError(409, "This package has sales and can't be deleted");
   }
+  await pkg.deleteOne();
 };

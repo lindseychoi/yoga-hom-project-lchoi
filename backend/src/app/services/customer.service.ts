@@ -1,5 +1,6 @@
 import { Customer, ICustomer } from '../models/customer.model';
 import { Counter } from '../models/counter.model';
+import { Sale } from '../models/sale.model';
 import { INotification } from '../models/notification.model';
 import * as notificationService from './notification.service';
 import { AppError } from '../../middleware/error-handler';
@@ -62,10 +63,12 @@ export const update = async (
 
 /** Deletes a customer, or a 404 if it doesn't exist. */
 export const remove = async (id: string): Promise<void> => {
-  const customer = await Customer.findByIdAndDelete(id);
-  if (!customer) {
-    throw new AppError(404, 'Customer not found');
+  // Keep sales history intact: a customer who has bought a package can't be deleted
+  const customer = await findById(id);
+  if (await Sale.exists({ customerId: customer.customerId })) {
+    throw new AppError(409, "This customer has sales and can't be deleted");
   }
+  await customer.deleteOne();
 };
 
 /** True if a customer with this first and last name exists, ignoring capitals. The screen uses it to warn before saving a duplicate. */

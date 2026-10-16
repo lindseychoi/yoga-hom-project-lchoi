@@ -4,6 +4,7 @@ import { authRouter } from './auth.routes';
 import { classRouter } from './class.routes';
 import { packageRouter } from './package.routes';
 import { customerRouter } from './customer.routes';
+import { saleRouter } from './sale.routes';
 
 export const apiRouter = Router();
 
@@ -18,8 +19,8 @@ apiRouter.use('/instructors', instructorRouter);
 apiRouter.use('/classes', classRouter);
 apiRouter.use('/packages', packageRouter);
 apiRouter.use('/customers', customerRouter);
+apiRouter.use('/sales', saleRouter);
 
 // Future routes:
-// apiRouter.use('/sales', saleRouter);
 // apiRouter.use('/attendance', attendanceRouter);
 // apiRouter.use('/reports', reportRouter);

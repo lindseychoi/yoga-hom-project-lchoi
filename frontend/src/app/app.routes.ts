@@ -6,6 +6,7 @@ import { Dashboard } from './pages/dashboard/dashboard';
 import { Instructors } from './pages/instructors/instructors';
 import { Login } from './pages/login/login';
 import { Packages } from './pages/packages/packages';
+import { Sales } from './pages/sales/sales';
 
 /** The login page at the root. Every other page needs a login. */
 export const routes: Routes = [
@@ -14,6 +15,7 @@ export const routes: Routes = [
   { path: 'instructors', component: Instructors, canActivate: [authGuard, managerGuard] },
   { path: 'customers', component: Customers, canActivate: [authGuard, managerGuard] },
   { path: 'packages', component: Packages, canActivate: [authGuard, managerGuard] },
+  { path: 'sales', component: Sales, canActivate: [authGuard, managerGuard] },
   { path: 'classes', component: Classes, canActivate: [authGuard] },
   { path: '**', redirectTo: '' },
 ];
