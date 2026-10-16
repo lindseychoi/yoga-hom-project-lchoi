@@ -11,4 +11,5 @@ classRouter.get('/', classController.getAll);
 classRouter.get('/:id', classController.getById);
 classRouter.post('/', authorize('Manager'), classController.create);
 classRouter.put('/:id', authorize('Manager'), classController.update);
+classRouter.post('/:id/publish', authorize('Manager'), classController.publish);
 classRouter.delete('/:id', authorize('Manager'), classController.remove);

@@ -57,7 +57,7 @@ const classSchema = new Schema<IClass>(
     },
     isPublished: {
       type: Boolean,
-      default: true,
+      default: false, // New classes are drafts until the manager publishes them (UC2)
     },
   },
   {

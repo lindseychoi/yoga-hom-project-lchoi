@@ -45,22 +45,21 @@ import { InstructorService } from '../../services/instructor.service';
         <th mat-header-cell *matHeaderCellDef>Class</th>
         <td mat-cell *matCellDef="let c">{{ c.className }}</td>
       </ng-container>
-      <ng-container matColumnDef="classType">
-        <th mat-header-cell *matHeaderCellDef>Type</th>
-        <td mat-cell *matCellDef="let c">{{ c.classType }}</td>
-      </ng-container>
       <ng-container matColumnDef="instructor">
         <th mat-header-cell *matHeaderCellDef>Instructor</th>
         <td mat-cell *matCellDef="let c">{{ instructorNames().get(c.instructorId) ?? c.instructorId }}</td>
       </ng-container>
-      <ng-container matColumnDef="payRate">
-        <th mat-header-cell *matHeaderCellDef>Pay rate</th>
-        <td mat-cell *matCellDef="let c">{{ c.payRate }}</td>
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let c">{{ c.isPublished ? 'Published' : 'Draft' }}</td>
       </ng-container>
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let c">
           @if (auth.isManager()) {
+            @if (!c.isPublished) {
+              <button mat-button type="button" (click)="publish(c)">Publish</button>
+            }
             <button mat-button type="button" (click)="openForm(c)">Edit</button>
             <button mat-button type="button" (click)="remove(c)">Delete</button>
           }
@@ -81,6 +80,7 @@ import { InstructorService } from '../../services/instructor.service';
                 <mat-option [value]="i.instructorId">{{ i.firstName }} {{ i.lastName }}</mat-option>
               }
             </mat-select>
+            <mat-error>Instructor is required</mat-error>
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Day</mat-label>
@@ -93,6 +93,7 @@ import { InstructorService } from '../../services/instructor.service';
           <mat-form-field appearance="outline">
             <mat-label>Time</mat-label>
             <input matInput type="time" formControlName="time" />
+            <mat-error>Time is required</mat-error>
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Class type</mat-label>
@@ -105,10 +106,12 @@ import { InstructorService } from '../../services/instructor.service';
           <mat-form-field appearance="outline">
             <mat-label>Class name</mat-label>
             <input matInput formControlName="className" />
+            <mat-error>Class name is required</mat-error>
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Pay rate</mat-label>
             <input matInput type="number" min="0" formControlName="payRate" />
+            <mat-error>Pay rate must be 0 or more</mat-error>
           </mat-form-field>
         </mat-dialog-content>
         <mat-dialog-actions>
@@ -123,6 +126,11 @@ import { InstructorService } from '../../services/instructor.service';
       width: 100%;
       margin-top: 1rem;
       --mat-table-background-color: transparent;
+    }
+
+    /* Keep Publish / Edit / Delete side by side */
+    td:last-child {
+      white-space: nowrap;
     }
 
     .fields {
@@ -143,7 +151,7 @@ export class Classes {
 
   protected readonly days = DAYS_OF_WEEK;
   protected readonly types = CLASS_TYPES;
-  protected readonly columns = ['dayOfWeek', 'time', 'className', 'classType', 'instructor', 'payRate', 'actions'];
+  protected readonly columns = ['dayOfWeek', 'time', 'className', 'instructor', 'status', 'actions'];
   protected readonly classes = signal<YogaClass[]>([]);
   protected readonly instructors = signal<Instructor[]>([]);
   protected readonly instructorNames = computed(
@@ -209,6 +217,20 @@ export class Classes {
           this.dialogRef?.removePanelClass('dialog-hidden')
         );
       },
+    });
+  }
+
+  /** Publishes a draft, then shows the confirmations sent to the instructor and the manager (UC2). */
+  protected publish(yogaClass: YogaClass) {
+    this.classService.publish(yogaClass._id).subscribe({
+      next: ({ notifications }) => {
+        this.load();
+        alertAction(
+          this.dialog,
+          notifications.map((n) => `Sent by ${n.channel} to ${n.to}: "${n.message}"`).join(' ')
+        );
+      },
+      error: (error) => this.showError(error),
     });
   }
 

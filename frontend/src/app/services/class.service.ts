@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { YogaClass } from '../models/class.model';
+import { Notification } from '../models/notification.model';
 import { API_URL } from './auth.service';
 
 export type ClassInput = Omit<YogaClass, '_id' | 'isPublished' | 'createdAt' | 'updatedAt'>;
@@ -21,6 +22,14 @@ export class ClassService {
 
   update(id: string, data: ClassInput) {
     return this.http.put<YogaClass>(`${this.url}/${id}`, data);
+  }
+
+  /** Publishes a draft class. Returns the confirmations sent to the instructor and the manager. */
+  publish(id: string) {
+    return this.http.post<{ class: YogaClass; notifications: Notification[] }>(
+      `${this.url}/${id}/publish`,
+      {}
+    );
   }
 
   remove(id: string) {
