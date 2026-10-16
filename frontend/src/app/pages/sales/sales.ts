@@ -88,11 +88,15 @@ const localNow = (): string => {
             </mat-select>
             <mat-error>Package is required</mat-error>
           </mat-form-field>
+          <!-- Explains an empty package list, since only packages that haven't ended are shown -->
+          @if (!sellablePackages().length) {
+            <p class="package-type">No packages are on sale. Check that a package's end date hasn't passed.</p>
+          }
 
           <!-- Package type fills in automatically once a package is picked (UC5) -->
           @if (selectedPackage(); as p) {
             <p class="package-type">
-              {{ p.classType }} · {{ p.packageCategory }} ·
+              Class type: {{ p.classType }} · Category: {{ p.packageCategory }} ·
               {{ p.numberOfClasses === unlimited ? 'Unlimited' : p.numberOfClasses + ' classes' }} ·
               {{ p.price | currency }}
             </p>

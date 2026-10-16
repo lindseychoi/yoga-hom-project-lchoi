@@ -1,6 +1,7 @@
 import { Customer, ICustomer } from '../models/customer.model';
 import { Counter } from '../models/counter.model';
 import { Sale } from '../models/sale.model';
+import { Attendance } from '../models/attendance.model';
 import { INotification } from '../models/notification.model';
 import * as notificationService from './notification.service';
 import { AppError } from '../../middleware/error-handler';
@@ -67,6 +68,10 @@ export const remove = async (id: string): Promise<void> => {
   const customer = await findById(id);
   if (await Sale.exists({ customerId: customer.customerId })) {
     throw new AppError(409, "This customer has sales and can't be deleted");
+  }
+  // Same for attendance: past class sheets keep their customers
+  if (await Attendance.exists({ 'entries.customerId': customer.customerId })) {
+    throw new AppError(409, "This customer has attendance records and can't be deleted");
   }
   await customer.deleteOne();
 };

@@ -1,4 +1,5 @@
 import { Class, IClass } from '../models/class.model';
+import { Attendance } from '../models/attendance.model';
 import { Instructor } from '../models/instructor.model';
 import { INotification } from '../models/notification.model';
 import { User } from '../models/user.model';
@@ -132,8 +133,10 @@ export const publish = async (
 
 /** Deletes a class, or a 404 if it doesn't exist. */
 export const remove = async (id: string): Promise<void> => {
-  const found = await Class.findByIdAndDelete(id);
-  if (!found) {
-    throw new AppError(404, 'Class not found');
+  // Keep attendance history intact: a class with attendance sheets can't be deleted
+  const found = await findById(id);
+  if (await Attendance.exists({ classId: id })) {
+    throw new AppError(409, "This class has attendance records and can't be deleted");
   }
+  await found.deleteOne();
 };

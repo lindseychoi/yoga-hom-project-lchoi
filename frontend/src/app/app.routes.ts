@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard, managerGuard } from './guards/auth.guard';
+import { Attendance } from './pages/attendance/attendance';
 import { Classes } from './pages/classes/classes';
 import { Customers } from './pages/customers/customers';
 import { Dashboard } from './pages/dashboard/dashboard';
@@ -16,6 +17,7 @@ export const routes: Routes = [
   { path: 'customers', component: Customers, canActivate: [authGuard, managerGuard] },
   { path: 'packages', component: Packages, canActivate: [authGuard, managerGuard] },
   { path: 'sales', component: Sales, canActivate: [authGuard, managerGuard] },
+  { path: 'attendance', component: Attendance, canActivate: [authGuard] },
   { path: 'classes', component: Classes, canActivate: [authGuard] },
   { path: '**', redirectTo: '' },
 ];
