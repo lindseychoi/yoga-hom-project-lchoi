@@ -80,6 +80,7 @@ const localNow = (): string => {
           <mat-form-field appearance="outline">
             <mat-label>Date</mat-label>
             <input matInput type="date" formControlName="date" />
+            <mat-hint>{{ form.value.date | date: 'EEEE' : 'UTC' }}</mat-hint>
             <mat-error>Date is required</mat-error>
           </mat-form-field>
           <mat-form-field appearance="outline">

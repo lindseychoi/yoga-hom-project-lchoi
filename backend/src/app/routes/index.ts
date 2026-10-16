@@ -6,6 +6,7 @@ import { packageRouter } from './package.routes';
 import { customerRouter } from './customer.routes';
 import { saleRouter } from './sale.routes';
 import { attendanceRouter } from './attendance.routes';
+import { reportRouter } from './report.routes';
 
 export const apiRouter = Router();
 
@@ -22,6 +23,6 @@ apiRouter.use('/packages', packageRouter);
 apiRouter.use('/customers', customerRouter);
 apiRouter.use('/sales', saleRouter);
 apiRouter.use('/attendance', attendanceRouter);
+apiRouter.use('/reports', reportRouter);
 
 // Future routes:
-// apiRouter.use('/reports', reportRouter);
