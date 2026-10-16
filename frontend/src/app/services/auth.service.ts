@@ -20,6 +20,7 @@ export class AuthService {
   private readonly token = signal<string | null>(localStorage.getItem(TOKEN_KEY));
   readonly role = signal<Role | null>(localStorage.getItem(ROLE_KEY) as Role | null);
   readonly isLoggedIn = computed(() => this.token() !== null);
+  readonly isManager = computed(() => this.role() === 'Manager');
 
   /** Sends the credentials, and saves the token and role when the server accepts them. */
   login(email: string, password: string) {

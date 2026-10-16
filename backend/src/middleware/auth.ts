@@ -2,12 +2,16 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AppError } from './error-handler';
 
+/** What the login token carries. instructorId is set only for Instructor logins. */
+interface TokenUser {
+  id: string;
+  role: 'Manager' | 'Instructor';
+  instructorId?: string;
+}
+
 /** A request that carries the logged-in user once authenticate has run. */
 export interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    role: 'Manager' | 'Instructor';
-  };
+  user?: TokenUser;
 }
 
 /** Requires a valid Bearer token. Sets req.user, or answers 401 if it is missing, invalid, or expired. */
@@ -27,10 +31,7 @@ export const authenticate = (
       throw new AppError(401, 'Authentication required');
     }
 
-    const decoded = jwt.verify(token, secret) as {
-      id: string;
-      role: 'Manager' | 'Instructor';
-    };
+    const decoded = jwt.verify(token, secret) as TokenUser;
 
     req.user = decoded;
     next();

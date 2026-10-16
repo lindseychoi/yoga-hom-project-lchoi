@@ -3,10 +3,9 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { User } from '../app/models/user.model';
+import { SALT_ROUNDS } from '../app/services/auth.service';
 
 dotenv.config();
-
-const SALT_ROUNDS = 10;
 
 const seed = async () => {
   const { MONGODB_URI, SEED_MANAGER_EMAIL, SEED_MANAGER_PASSWORD } = process.env;

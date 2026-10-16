@@ -10,6 +10,7 @@ import { MatTableModule } from '@angular/material/table';
 import { Observable } from 'rxjs';
 import { alertAction, confirmAction } from '../../components/confirm-dialog';
 import { Instructor, PHONE_PATTERN } from '../../models/instructor.model';
+import { MIN_PASSWORD_LENGTH } from '../../models/user.model';
 import { InstructorInput, InstructorService } from '../../services/instructor.service';
 
 /** Table of instructors with add, edit, and delete. The form opens as a dialog defined in this template. */
@@ -95,6 +96,11 @@ import { InstructorInput, InstructorService } from '../../services/instructor.se
               <mat-option value="phone">Phone</mat-option>
             </mat-select>
           </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ editing ? 'New login password (leave blank to keep)' : 'Login password (optional)' }}</mat-label>
+            <input matInput type="password" formControlName="password" autocomplete="new-password" />
+            <mat-error>Password must be at least {{ minPasswordLength }} characters</mat-error>
+          </mat-form-field>
         </mat-dialog-content>
         <mat-dialog-actions>
           <button mat-button type="button" mat-dialog-close>Cancel</button>
@@ -125,6 +131,7 @@ export class Instructors {
 
   protected readonly columns = ['instructorId', 'name', 'email', 'phone', 'preferredContact', 'actions'];
   protected readonly instructors = signal<Instructor[]>([]);
+  protected readonly minPasswordLength = MIN_PASSWORD_LENGTH;
   protected editing: Instructor | null = null;
   protected readonly form = inject(FormBuilder).nonNullable.group({
     firstName: ['', Validators.required],
@@ -134,6 +141,7 @@ export class Instructors {
     phone: ['', [Validators.required, Validators.pattern(PHONE_PATTERN)]],
     email: ['', [Validators.required, Validators.email]],
     preferredContact: ['email' as Instructor['preferredContact'], Validators.required],
+    password: ['', Validators.minLength(MIN_PASSWORD_LENGTH)],
   });
 
   constructor() {
@@ -156,7 +164,9 @@ export class Instructors {
 
   /** On add, first asks whether the name already exists. The form dialog is hidden while that question shows, so nothing typed is lost. */
   protected save() {
-    const data = this.form.getRawValue();
+    // Only send a password when one was typed, so a blank field never changes the login
+    const { password, ...fields } = this.form.getRawValue();
+    const data: InstructorInput = password ? { ...fields, password } : fields;
     if (this.editing) {
       this.persist(this.service.update(this.editing._id, data));
       return;

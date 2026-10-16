@@ -11,6 +11,7 @@ import { Observable } from 'rxjs';
 import { alertAction, confirmAction } from '../../components/confirm-dialog';
 import { CLASS_TYPES, DAYS_OF_WEEK, YogaClass } from '../../models/class.model';
 import { Instructor } from '../../models/instructor.model';
+import { AuthService } from '../../services/auth.service';
 import { ClassService } from '../../services/class.service';
 import { InstructorService } from '../../services/instructor.service';
 
@@ -27,7 +28,9 @@ import { InstructorService } from '../../services/instructor.service';
     MatTableModule,
   ],
   template: `
-    <button mat-flat-button type="button" (click)="openForm()">Add class</button>
+    @if (auth.isManager()) {
+      <button mat-flat-button type="button" (click)="openForm()">Add class</button>
+    }
 
     <table mat-table [dataSource]="classes()">
       <ng-container matColumnDef="dayOfWeek">
@@ -57,8 +60,10 @@ import { InstructorService } from '../../services/instructor.service';
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let c">
-          <button mat-button type="button" (click)="openForm(c)">Edit</button>
-          <button mat-button type="button" (click)="remove(c)">Delete</button>
+          @if (auth.isManager()) {
+            <button mat-button type="button" (click)="openForm(c)">Edit</button>
+            <button mat-button type="button" (click)="remove(c)">Delete</button>
+          }
         </td>
       </ng-container>
       <tr mat-header-row *matHeaderRowDef="columns"></tr>
@@ -128,6 +133,8 @@ import { InstructorService } from '../../services/instructor.service';
   `,
 })
 export class Classes {
+  // Instructors see the schedule read-only; the server also rejects their changes
+  protected readonly auth = inject(AuthService);
   private readonly classService = inject(ClassService);
   private readonly instructorService = inject(InstructorService);
   private readonly dialog = inject(MatDialog);

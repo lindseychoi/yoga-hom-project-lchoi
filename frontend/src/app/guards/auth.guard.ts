@@ -6,6 +6,10 @@ import { AuthService } from '../services/auth.service';
 export const authGuard: CanActivateFn = () =>
   inject(AuthService).isLoggedIn() || inject(Router).createUrlTree(['/']);
 
+/** Manager-only pages: anyone else is sent to the dashboard. */
+export const managerGuard: CanActivateFn = () =>
+  inject(AuthService).isManager() || inject(Router).createUrlTree(['/dashboard']);
+
 /** The reverse: sends logged-in users to the dashboard so they don't see the login page again. */
 export const guestGuard: CanActivateFn = () =>
   !inject(AuthService).isLoggedIn() || inject(Router).createUrlTree(['/dashboard']);

@@ -4,7 +4,9 @@ import { Instructor } from '../models/instructor.model';
 import { Notification } from '../models/notification.model';
 import { API_URL } from './auth.service';
 
-export type InstructorInput = Omit<Instructor, '_id' | 'instructorId' | 'createdAt' | 'updatedAt'>;
+export type InstructorInput = Omit<Instructor, '_id' | 'instructorId' | 'createdAt' | 'updatedAt'> & {
+  password?: string;
+};
 
 /** API calls for instructors. exists() asks the server whether a name is already taken. */
 @Injectable({ providedIn: 'root' })
