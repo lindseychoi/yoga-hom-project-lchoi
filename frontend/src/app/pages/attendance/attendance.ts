@@ -211,7 +211,7 @@ export class Attendance {
     const day = DAYS_OF_WEEK[(new Date(`${date}T00:00:00Z`).getUTCDay() + 6) % 7];
     return day === yogaClass.dayOfWeek && time === yogaClass.time
       ? null
-      : `This class is scheduled for ${yogaClass.dayOfWeek} at ${yogaClass.time}.`;
+      : `Doesn't match the schedule: this class is on ${yogaClass.dayOfWeek} at ${yogaClass.time}, but you entered ${day} at ${time}.`;
   }
 
   protected save() {
