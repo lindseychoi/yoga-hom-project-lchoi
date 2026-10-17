@@ -45,6 +45,7 @@ export const update = async (req: Request<{ id: string }>, res: Response, next: 
   }
 };
 
+// Manager-only (see routes); the manager who publishes gets the confirmation
 export const publish = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     res.json(await classService.publish(String(req.params.id), req.user!.id));

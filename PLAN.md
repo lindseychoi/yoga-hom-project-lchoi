@@ -15,10 +15,12 @@
 4. [Use Cases](#4-use-cases)
 5. [API Design](#5-api-design)
 6. [Frontend Structure](#6-frontend-structure)
-7. [Sequence Diagrams](#7-sequence-diagrams)
+7. [UX Flows & Sequence Diagrams](#7-ux-flows--sequence-diagrams)
 8. [Styling Strategy](#8-styling-strategy)
 9. [CI/CD & Deployment](#9-cicd--deployment)
 10. [Development Phases](#10-development-phases)
+11. [AI Usage & Architectural Methodology](#11-ai-usage--architectural-methodology)
+12. [Working Rules](#12-working-rules)
 
 ---
 
@@ -37,7 +39,7 @@
 ### Constraints
 
 - **No hardcoding** — all business data (schedules, roles, packages) is served dynamically from Express/MongoDB.
-- **Clean modular architecture** — Controllers, Services, Models, Routes (backend); Components, Services, State Management (frontend).
+- **Clean modular architecture** — Routes, Controllers, Services, Models (backend); Pages, Components, Services, Guards (frontend).
 - **Photo-led UI** — a full-bleed landing photo with a soft five-color palette held in SCSS variables; semantic HTML enabling future theming without logic refactors.
 - **Visual documentation** — Mermaid.js diagrams for architecture, ERD, and data flows.
 
@@ -49,12 +51,12 @@
 graph TB
     subgraph Client["Angular Frontend"]
         Pages["Pages / Smart Components"]
-        UI["UI / Presentational Components"]
+        UI["Shared Components (dialogs)"]
         Services["Angular Services (HTTP)"]
-        State["State Management"]
+        Guards["Route guards + auth interceptor"]
         Pages --> UI
         Pages --> Services
-        Services --> State
+        Services --> Guards
     end
 
     subgraph Server["Express Backend"]
@@ -82,13 +84,13 @@ yoga-hom-project-lchoi/
 ├── frontend/                   # Angular CLI app
 │   └── src/
 │       ├── app/
-│       │   ├── pages/          # Smart/routed components (one per route)
-│       │   ├── components/     # Presentational / shared components
-│       │   ├── services/       # Angular HTTP services
-│       │   ├── state/          # State management
-│       │   └── models/         # Frontend-only interfaces
-│       ├── styles/             # Global styles, Material theme
-│       └── environments/
+│       │   ├── pages/          # Routed pages (one per route)
+│       │   ├── components/     # Shared components (confirm/alert dialog)
+│       │   ├── services/       # Angular HTTP services and login state
+│       │   ├── models/         # Frontend interfaces and shared constants
+│       │   ├── guards/         # Route protection (logged in, Manager only)
+│       │   └── interceptors/   # Adds the login token to every request
+│       └── styles/             # Global styles, color palette variables
 ├── backend/                    # Express + Mongoose API
 │   └── src/
 │       ├── app/
@@ -97,10 +99,12 @@ yoga-hom-project-lchoi/
 │       │   ├── services/       # Business logic
 │       │   └── models/         # Mongoose schemas/models
 │       ├── middleware/         # Auth guards, error handler
-│       └── environments/
+│       └── scripts/            # Seed script for the Manager login
+├── docs/                       # Project report
+├── .github/workflows/          # CI pipeline
 ├── package.json                # Heroku build/start scripts (see Section 9)
+├── Makefile                    # Shortcuts: install, dev, build, test, seed
 ├── PLAN.md
-├── CLAUDE.md
 ├── README.md
 └── LICENSE
 ```
@@ -111,6 +115,14 @@ yoga-hom-project-lchoi/
 
 ```mermaid
 erDiagram
+    USER {
+        string _id PK
+        string email UK
+        string passwordHash
+        string role "Manager | Instructor"
+        string instructorId FK "Instructor logins only"
+    }
+
     INSTRUCTOR {
         string _id PK
         string instructorId UK "I00XXX"
@@ -132,7 +144,7 @@ erDiagram
         string phone
         string email
         string preferredContact "phone | email"
-        number classBalance "default 0"
+        number classBalance "default 0, can go negative"
         date createdAt
     }
 
@@ -140,23 +152,24 @@ erDiagram
         string _id PK
         string instructorId FK
         string dayOfWeek
-        string time
+        string time "HH:mm"
         string classType "General | Special"
         string className
         number payRate
-        boolean isPublished
+        boolean isPublished "false until published"
         date createdAt
     }
 
     PACKAGE {
         string _id PK
-        string packageId UK
+        string packageId UK "PKG00X"
         string packageName
         string packageCategory "General | Senior"
         number numberOfClasses "1, 4, 10, -1 for unlimited"
         string classType "General | Special"
+        date startDate
+        date endDate
         number price
-        date createdAt
     }
 
     SALE {
@@ -164,7 +177,7 @@ erDiagram
         string customerId FK
         string packageId FK
         number amountPaid
-        string paymentMode
+        string paymentMode "Cash | Card | Check"
         date paymentDate
         date validityStart
         date validityEnd
@@ -175,19 +188,25 @@ erDiagram
         string _id PK
         string classId FK
         string instructorId FK
-        date classDate
-        string classTime
-        date createdAt
+        date date
+        string time
     }
 
     ATTENDANCE_ENTRY {
-        string _id PK
-        string attendanceRecordId FK
         string customerId FK
-        boolean present
-        boolean negativeBalance "flag if balance went negative"
+        number balanceAfter
+        boolean negativeBalance "saved below 0"
     }
 
+    NOTIFICATION {
+        string _id PK
+        string recipientId
+        string channel "phone | email"
+        string to
+        string message
+    }
+
+    USER |o--o| INSTRUCTOR : "logs in as"
     YOGA_CLASS }o--|| INSTRUCTOR : "has"
     YOGA_CLASS ||--o{ ATTENDANCE_RECORD : "has"
     ATTENDANCE_RECORD ||--o{ ATTENDANCE_ENTRY : "contains"
@@ -195,6 +214,8 @@ erDiagram
     CUSTOMER ||--o{ SALE : "purchases"
     PACKAGE ||--o{ SALE : "sold-as"
 ```
+
+Attendance entries are stored inside their attendance record. `NOTIFICATION` holds the simulated messages (welcome, class confirmation, check-in).
 
 ### ID Generation Strategy
 
@@ -218,6 +239,8 @@ erDiagram
 
 ## 4. Use Cases
 
+> Part 2 assumptions (simulated messages, one balance, unlimited packages, draft and publish, blocked deletes) are listed in `docs/PROJECT_REPORT.md`, section 5.
+
 ### Use Case Diagram (Actors & Capabilities)
 
 ```mermaid
@@ -226,11 +249,11 @@ graph LR
     Instructor(("Instructor"))
 
     Manager --> UC1["UC1: Add Instructor"]
-    Manager --> UC2["UC2: Add Class"]
+    Manager --> UC2["UC2: Add & Publish Class"]
     Manager --> UC3["UC3: Add Package"]
     Manager --> UC4["UC4: Add Customer"]
     Manager --> UC5["UC5: Record Sale"]
-    Manager --> UC6["UC6: Record Attendance"]
+    Manager --> UC6["UC6: Record & View Attendance"]
     Manager --> UC7["UC7: Generate Reports"]
 
     Instructor --> UC6
@@ -250,7 +273,7 @@ graph LR
 | **Actor** | Manager |
 | **Precondition** | Manager is authenticated |
 | **Input** | firstName, lastName, address, phone, email, preferredContact |
-| **Flow** | 1. Manager submits instructor form. 2. Server checks for duplicate names → warns if exists, allows override. 3. Server generates `instructorId` (prefix `I`). 4. Server validates required fields. 5. Record saved → confirmation returned. 6. Notification sent to instructor via preferred contact. |
+| **Flow** | 1. Manager submits instructor form. 2. Server checks for duplicate names → warns if exists, allows override. 3. Server generates `instructorId` (prefix `I`). 4. Server validates required fields. 5. Record saved → confirmation returned. 6. Welcome message sent via preferred contact: `"Welcome to Yoga'Hom! Your instructor id is I00001."` 7. Optionally, the Manager sets a login password, which creates (or later resets) the instructor's login. |
 | **Postcondition** | New instructor record exists in DB with unique `I`-prefixed ID |
 
 ### UC2: Add Class
@@ -260,16 +283,16 @@ graph LR
 | **Actor** | Manager |
 | **Precondition** | At least one instructor exists |
 | **Input** | instructorId, dayOfWeek, time, classType (General/Special), className, payRate |
-| **Flow** | 1. Manager submits class form. 2. Server checks for schedule conflicts (only one class per time slot). 3. If conflict → server returns alternative available slots. 4. Manager selects a slot. 5. Class saved and published. 6. Confirmation sent to the manager and the instructor. |
-| **Postcondition** | New class in schedule; no time-slot conflicts |
+| **Flow** | 1. Manager submits class form. 2. Server checks for schedule conflicts (only one class per time slot). 3. If conflict → server refuses and lists the next free times that day; the Manager picks one. 4. Class saved as a draft. 5. Manager publishes it. 6. Confirmation sent to the manager and the instructor. |
+| **Postcondition** | New published class in schedule; no time-slot conflicts |
 
 ### UC3: Add Package
 
 | Field | Detail |
 |-------|--------|
 | **Actor** | Manager |
-| **Input** | packageName, packageCategory (General/Senior), numberOfClasses (1/4/10/unlimited), classType (General/Special), price |
-| **Flow** | 1. Manager submits package form. 2. Server generates `packageId`. 3. Record saved → confirmation displayed. |
+| **Input** | packageName, packageCategory (General/Senior), numberOfClasses (1/4/10/unlimited), classType (General/Special), startDate, endDate, price |
+| **Flow** | 1. Manager submits package form. 2. Server validates the values and that the end date is after the start date. 3. Server generates `packageId`. 4. Record saved → confirmation displayed. |
 | **Postcondition** | New package available for sale |
 
 ### UC4: Add Customer
@@ -278,7 +301,7 @@ graph LR
 |-------|--------|
 | **Actor** | Manager |
 | **Input** | firstName, lastName, address, phone, email, preferredContact |
-| **Flow** | 1. Manager submits customer form. 2. Server checks for duplicate names → warns if exists, allows override. 3. Server generates `customerId` (prefix `C`). 4. `classBalance` initialized to `0`. 5. Server validates required fields. 6. Record saved → confirmation returned. 7. Notification sent to customer via preferred contact. |
+| **Flow** | 1. Manager submits customer form. 2. Server checks for duplicate names → warns if exists, allows override. 3. Server generates `customerId` (prefix `C`). 4. `classBalance` initialized to `0`. 5. Server validates required fields. 6. Record saved → confirmation returned. 7. Welcome message sent via preferred contact: `"Welcome to Yoga'Hom! Your customer id is C00001."` |
 | **Postcondition** | New customer record exists in DB with unique `C`-prefixed ID and zero balance |
 
 ### UC5: Record Sale
@@ -287,7 +310,7 @@ graph LR
 |-------|--------|
 | **Actor** | Manager |
 | **Input** | customerId, packageId, amountPaid, paymentMode, paymentDate, validityStart, validityEnd |
-| **Flow** | 1. Manager selects customer and package. 2. Server auto-populates package type and price. 3. Manager enters payment details. 4. Server validates: amount matches package rate; dates are valid. 5. Server updates customer `classBalance` based on package `numberOfClasses`. 6. Sale record saved → new balance displayed with confirmation. |
+| **Flow** | 1. Manager selects customer and package. 2. Server auto-populates package type and price. 3. Manager enters payment details. 4. Server validates: amount matches the package price; payment time is within 24 hours of now; validity dates fall within the package dates and aren't over. 5. Server adds the package's `numberOfClasses` to the customer's `classBalance` (unlimited leaves it unchanged). 6. Sale record saved → new balance displayed with confirmation. |
 | **Postcondition** | Sale recorded; customer classBalance incremented |
 
 ### UC6: Record Class Attendance
@@ -296,7 +319,7 @@ graph LR
 |-------|--------|
 | **Actor** | Instructor (or Manager) |
 | **Precondition** | Instructor has assigned classes; customers exist |
-| **Flow** | 1. Instructor selects from their assigned classes. 2. Server displays attendance form with current date/time (editable). 3. Server warns if date/time doesn't match class schedule. 4. Instructor selects attending customers from customer list. 5. Instructor saves attendance. 6. Server validates each customer's `classBalance`. 7. If balance insufficient → warning with option to save with negative balance. 8. Server decrements `classBalance` for each attendee. 9. Check-in confirmation sent to each customer: `"Hello {firstName}! You are checked-in for a class on {date} at {time}. Your class-balance is {balance}."` |
+| **Flow** | 1. Instructor selects from their assigned classes. 2. Server displays attendance form with current date/time (editable). 3. Server warns if date/time doesn't match class schedule. 4. Instructor selects attending customers from customer list. 5. Instructor saves attendance. 6. Server checks each customer's `classBalance` and whether their package's class type matches the class. 7. If anything is off → warning with option to save anyway (a balance below 0 is flagged). 8. Server decrements `classBalance` for each attendee (unlimited packages don't change). 9. Check-in confirmation sent to each customer: `"Hello {firstName}! You are checked-in for a class on {date} at {time}. Your class-balance is {balance}."` |
 | **Postcondition** | Attendance recorded; customer balances updated; confirmations sent |
 
 ### UC7: Generate Reports
@@ -307,6 +330,13 @@ graph LR
 | **Instructor List** | All instructors with their classes and total check-ins |
 | **Customer List** | All customers with their packages (active / future / expired) |
 | **Teacher Payment** | Monthly report per instructor: `payRate × number of classes with check-ins` |
+
+### UC8 & UC9: Instructor Views
+
+| Use case | Detail |
+|----------|--------|
+| **UC8 View Class Schedule** | An Instructor sees only their own published classes, on This Week and the Classes page. |
+| **UC9 Self-Performance Report** | An Instructor picks a month and sees their classes held, check-ins, and pay. |
 
 ---
 
@@ -334,19 +364,18 @@ All routes prefixed with `/api/v1`.
 | `GET` | `/customers/:id` | Get customer by ID |
 | `PUT` | `/customers/:id` | Update customer |
 | `DELETE` | `/customers/:id` | Delete customer |
-| `GET` | `/customers/check-duplicate` | Check for duplicate name |
+| `GET` | `/customers/check-duplicate` | Check for duplicate name (Manager) |
 
 ### Classes
 
 | Method | Route | Description |
 |--------|-------|-------------|
 | `POST` | `/classes` | Create class (UC2) |
-| `GET` | `/classes` | List all classes (schedule) |
+| `GET` | `/classes` | List classes (an Instructor gets only their own published classes) |
 | `GET` | `/classes/:id` | Get class by ID |
 | `PUT` | `/classes/:id` | Update class |
 | `DELETE` | `/classes/:id` | Delete class |
-| `GET` | `/classes/conflicts` | Check time-slot conflicts |
-| `GET` | `/classes/available-slots` | Get available time slots |
+| `POST` | `/classes/:id/publish` | Publish a draft class and notify the instructor and manager (UC2). A time-slot conflict returns the free times in its error message. |
 
 ### Packages
 
@@ -364,24 +393,23 @@ All routes prefixed with `/api/v1`.
 |--------|-------|-------------|
 | `POST` | `/sales` | Record a sale (UC5) |
 | `GET` | `/sales` | List all sales |
-| `GET` | `/sales/customer/:customerId` | Sales by customer |
 
 ### Attendance
 
 | Method | Route | Description |
 |--------|-------|-------------|
 | `POST` | `/attendance` | Record attendance (UC6) |
-| `GET` | `/attendance/class/:classId` | Attendance by class |
-| `GET` | `/attendance/instructor/:instructorId` | Attendance by instructor |
+| `GET` | `/attendance` | Attendance sheets: all for a Manager, own classes for an Instructor |
 
 ### Reports
 
 | Method | Route | Description |
 |--------|-------|-------------|
-| `GET` | `/reports/sales` | Package sales report (UC7) |
+| `GET` | `/reports/package-sales` | Package sales report (UC7) |
 | `GET` | `/reports/instructors` | Instructor list + check-ins (UC7) |
 | `GET` | `/reports/customers` | Customer list + packages (UC7) |
 | `GET` | `/reports/teacher-payment` | Monthly teacher payment report (UC7) |
+| `GET` | `/reports/me` | An Instructor's own performance for a month (UC9) |
 
 ---
 
@@ -389,25 +417,26 @@ All routes prefixed with `/api/v1`.
 
 ### Pages (Ultra-Lean Component Strategy)
 
-To minimize boilerplate and prevent over-engineering, we will use an **Ultra-Lean** approach. The application shell (sidebar/header) lives directly in `AppComponent`, and all CRUD forms are handled via Angular Material Dialogs (popups) instead of standalone routed pages.
+To minimize boilerplate and prevent over-engineering, the app uses an **Ultra-Lean** approach. The application shell (sidebar/header) lives directly in `AppComponent`, and all CRUD forms are handled via Angular Material Dialogs (popups) instead of standalone routed pages.
 
 | Component | Route | Description |
 |-----------|-------|-------------|
-| `AppComponent` | N/A | Root shell containing Sidebar and Header navigation |
-| `LoginComponent` | `/login` | Authentication entry |
-| `DashboardComponent` | `/` | Landing page with quick stats |
-| `InstructorsComponent` | `/instructors` | Data table. "Add/Edit" opens a Material Dialog form. |
-| `CustomersComponent` | `/customers` | Data table. "Add/Edit" opens a Material Dialog form. |
-| `ClassesComponent` | `/classes` | Class schedule view. "Add" opens Dialog form. |
-| `PackagesComponent` | `/packages` | Package list. "Add" opens Dialog form. |
-| `RecordSaleComponent` | `/sales/new` | Full-page transaction flow for a sale. |
-| `RecordAttendanceComponent`| `/attendance/new` | Full-page attendance checklist flow. |
-| `ReportsComponent` | `/reports` | Data tables for the four report types. |
+| `App` | N/A | Root shell containing the sidebar and logout button |
+| `Login` | `/` | Landing photo and login card |
+| `Dashboard` | `/dashboard` | This Week: the weekly class schedule |
+| `Instructors` | `/instructors` | Data table. "Add/Edit" opens a Material Dialog form. (Manager) |
+| `Customers` | `/customers` | Data table. "Add/Edit" opens a Material Dialog form. (Manager) |
+| `Packages` | `/packages` | Data table. "Add/Edit" opens a Material Dialog form. (Manager) |
+| `Sales` | `/sales` | Sales table. "Record sale" opens a Dialog form. (Manager) |
+| `Classes` | `/classes` | Class table with Draft/Publish. "Add/Edit" opens a Dialog form. |
+| `Attendance` | `/attendance` | Attendance table. "Record attendance" opens a Dialog form. |
+| `Reports` | `/reports` | Four report tabs for the Manager. My performance for an Instructor. |
 
 ### Angular Services
 
 | Service | Responsibility |
 |---------|---------------|
+| `AuthService` | Login, logout, and the current role |
 | `InstructorService` | CRUD operations for instructors |
 | `CustomerService` | CRUD operations for customers |
 | `ClassService` | CRUD operations for classes + schedule |
@@ -415,7 +444,6 @@ To minimize boilerplate and prevent over-engineering, we will use an **Ultra-Lea
 | `SaleService` | Recording and querying sales |
 | `AttendanceService` | Recording and querying attendance |
 | `ReportService` | Fetching report data |
-| `NotificationService` | Displaying in-app alerts and confirmations |
 
 ---
 
@@ -425,22 +453,21 @@ To minimize boilerplate and prevent over-engineering, we will use an **Ultra-Lea
 
 ```mermaid
 flowchart TD
-    Start((Login as Manager)) --> Dash[View Dashboard]
-    Dash --> ClickSale[Click 'Record Sale' in Sidebar]
-    ClickSale --> Form[Open Sale Form]
-    
+    Start((Login as Manager)) --> Sales[Open Sales in the sidebar]
+    Sales --> ClickSale[Click 'Record sale']
+    ClickSale --> Form[Open Sale Dialog]
+
     subgraph Sale Form UX
-        Form --> SelectCust[1. Select Customer from Dropdown]
-        SelectCust --> SelectPkg[2. Select '10-Class Package']
-        SelectPkg --> AutoPrice[UI Auto-fills Price: $150]
-        AutoPrice --> PayDetails[3. Enter Payment Mode]
+        Form --> SelectCust[1. Select Customer]
+        SelectCust --> SelectPkg[2. Select Package]
+        SelectPkg --> AutoType[UI shows package type and price]
+        AutoType --> PayDetails[3. Enter amount, payment mode, dates]
         PayDetails --> Submit{Click Save}
     end
-    
+
     Submit --> API[Express Validates & Updates DB]
-    API --> Success[Show Success Notification]
-    Success --> Redirect[Redirect to Customer Profile]
-    Redirect --> ViewBalance[View updated Class Balance]
+    API --> Success[Show new class balance]
+    Success --> Table[Sale appears in the Sales table]
 ```
 
 ### UX Flow 2: Record Attendance (Instructor Journey)
@@ -448,26 +475,27 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start((Login as Instructor)) --> Dash[View Dashboard]
-    Dash --> ClickAtt[Click 'Record Attendance']
+    Dash --> ClickAtt[Open Attendance, click 'Record attendance']
     ClickAtt --> Form[Open Attendance Form]
     
     subgraph Attendance Form UX
         Form --> SelectClass[1. Select Assigned Class]
         SelectClass --> TimeCheck{Is Date/Time match?}
         TimeCheck -->|No| Warn[Show Warning: Not scheduled time]
-        TimeCheck -->|Yes| LoadCust[Load Customer Checklist]
-        LoadCust --> Checkboxes[2. Check boxes for attending customers]
-        Checkboxes --> Submit{Click Save}
+        TimeCheck -->|Yes| LoadCust[Load customer list with balances]
+        Warn --> LoadCust
+        LoadCust --> Pick[2. Select attending customers]
+        Pick --> Submit{Click Save}
     end
     
     Submit --> API[Express Validates Balances]
     API --> BalCheck{Are balances sufficient?}
     
     BalCheck -->|Yes| Success[Save Check-ins & Deduct Balances]
-    BalCheck -->|No| OverridePrompt[Show Warning Modal: 'Customer X has negative balance']
+    BalCheck -->|No| OverridePrompt[Show warnings and ask 'Save anyway?']
     
-    OverridePrompt -->|Force Save| Success
-    Success --> Done((Return to Dashboard))
+    OverridePrompt -->|Save anyway| Success
+    Success --> Done((Check-in messages shown))
 ```
 
 ### Technical Sequence: Record Sale
@@ -507,8 +535,8 @@ sequenceDiagram
     participant DB as MongoDB
 
     I->>UI: Open "Record Attendance"
-    UI->>API: GET /api/v1/classes?instructorId=X
-    API->>DB: Find instructor's classes
+    UI->>API: GET /api/v1/classes
+    API->>DB: Find this instructor's published classes
     DB-->>API: Class list
     API-->>UI: Class list
     I->>UI: Select class
@@ -519,11 +547,11 @@ sequenceDiagram
     I->>UI: Select attending customers
     I->>UI: Save attendance
     UI->>API: POST /api/v1/attendance
-    API->>DB: Validate class balances
-    alt Balance insufficient
-        API-->>UI: Warning - negative balance
-        I->>UI: Confirm save with negative balance
-        UI->>API: POST /api/v1/attendance (force=true)
+    API->>DB: Check balances, package types, and schedule
+    alt Any warnings
+        API-->>UI: 409 with the warnings
+        I->>UI: Save anyway
+        UI->>API: POST /api/v1/attendance (confirmed=true)
     end
     API->>DB: Save attendance entries
     API->>DB: Decrement classBalance for each attendee
@@ -593,15 +621,15 @@ After the first deploy, the production Manager account is created with the compi
 
 ## 10. Development Phases
 
-| Phase | Scope | Key Deliverables |
-|-------|-------|-----------------|
-| **Phase 0** | Planning | `PLAN.md`, `README.md`, repository baseline |
-| **Phase 1** | Project Scaffold | `frontend/` (Angular CLI), `backend/` (Express + Mongoose) |
-| **Phase 2** | Horizontal UI Mock | Build the entire Angular Frontend using the 10-Component Strategy, Material Dialogs, and mocked data. No DB connection yet. |
-| **Phase 3** | Vertical Slice 1 (Auth) | Connect MongoDB. Build `UserModel` and Express Auth routes. Connect Angular Login page for full-stack authentication. |
-| **Phase 4** | Vertical Slice 2 (Instructors) | Build `InstructorModel` and Express routes. Connect Angular Instructors Table/Form to the live DB. (Satisfies assignment requirements). |
-| **Phase 5** | Remaining Vertical Slices | Build out MongoDB/Express integration for Customers, Classes, Packages, Sales, and Attendance. |
-| **Phase 6** | Reports & Deployment | Build report aggregations. Finalize Heroku production deployment script. |
+| Phase | Scope | Key Deliverables | Status |
+|-------|-------|-----------------|--------|
+| **Phase 0** | Planning | `PLAN.md`, `README.md`, repository baseline | Done |
+| **Phase 1** | Project Scaffold | `frontend/` (Angular CLI), `backend/` (Express + Mongoose) | Done |
+| **Phase 2** | Horizontal UI Mock | Build the entire Angular Frontend using the 10-Component Strategy, Material Dialogs, and mocked data. No DB connection yet. | Done |
+| **Phase 3** | Vertical Slice 1 (Auth) | Connect MongoDB. Build `UserModel` and Express Auth routes. Connect Angular Login page for full-stack authentication. | Done |
+| **Phase 4** | Vertical Slice 2 (Instructors) | Build `InstructorModel` and Express routes. Connect Angular Instructors Table/Form to the live DB. (Satisfies assignment requirements). | Done |
+| **Phase 5** | Remaining Vertical Slices | Build out MongoDB/Express integration for Customers, Classes, Packages, Sales, and Attendance. | Done |
+| **Phase 6** | Reports & Deployment | Build report aggregations. Finalize Heroku production deployment script. | Done |
 
 ---
 
@@ -634,3 +662,15 @@ Key architectural decisions and dialogues logged for academic reference:
 6. **Frontend Component Architecture**:
    *Inquiry*: Determining the scale and routing of Angular components.
    *Resolution*: The AI proposed a highly segregated component structure (e.g., separating List views and Form views into distinct routed pages). This was evaluated as creating excessive boilerplate. Successfully pivoted to an "Ultra-Lean" approach, consolidating layouts into the root component and utilizing Angular Material Dialogs for all CRUD forms, effectively cutting the required component count in half.
+
+---
+
+## 12. Working Rules
+
+- **Ask before changing anything.** No files are created, edited, or deleted without approval.
+- **Keep the architecture.** Changes to this plan's architecture need approval first.
+- **No new packages** without approval, and no upgrades or removals either.
+- **Only what was asked.** No extra refactors, cleanups, or "improvements" beyond the request.
+- **Minimal, clear code.** No speculative abstractions, dead code, or comments that restate the code.
+- **No hardcoding.** No secrets, URLs, credentials, magic numbers, or business data in source. Use environment variables, constants, or the API.
+- **Best practices.** Anything that isn't standard good practice needs approval and an explanation.

@@ -1,6 +1,6 @@
 # Studio Yoga 'Hom
 
-A web application for Yoga Hom Studio in Pittsburgh, PA. It replaces the studio's paper records with a system for managing instructors and classes now, and customers, packages, sales, attendance, and reports next.
+A web application for Yoga Hom Studio in Pittsburgh, PA. It replaces the studio's paper records with a system for managing instructors, classes, customers, packages, sales, attendance, and reports.
 
 **Live site:** https://lindsey-c-yoga-project-21bd18fc0ab6.herokuapp.com/
 
@@ -13,18 +13,20 @@ The site runs on a Heroku Eco dyno, so the first request after a quiet period ca
 | Use case | Status |
 |----------|--------|
 | UC1 Add an instructor | Done |
-| UC2 Add a class | Done |
-| UC3 Add a package | Planned |
-| UC4 Add a customer | Planned |
-| UC5 Record a sale | Planned |
-| UC6 Record class attendance | Planned |
-| UC7 Generate studio reports | Planned |
+| UC2 Add and publish a class | Done |
+| UC3 Add a package | Done |
+| UC4 Add a customer | Done |
+| UC5 Record a sale | Done |
+| UC6 Record and view class attendance | Done |
+| UC7 Generate studio reports | Done |
+| UC8 View class schedule | Done |
+| UC9 Self-performance report | Done |
 
-Login works with a Manager account. Only a Manager can create, edit, or delete data. Instructor accounts are planned along with attendance.
+The Manager logs in with the account from `make seed`. The Manager creates instructor logins by setting a password on the instructor's form, and can reset it there. Instructors see their own published classes, record attendance for them, and see their own performance report.
 
-| Schedule | Instructors | Classes |
+| Schedule | Record sale | Reports |
 |----------|-------------|---------|
-| ![Schedule](dashboard.png) | ![Instructors](instructors.png) | ![Classes](classes.png) |
+| ![Schedule](yoga-part-2-dashboard.png) | ![Record sale](yoga-part-2-record-sale.png) | ![Reports](yoga-part-2-reports.png) |
 
 ## Tech stack
 
@@ -40,7 +42,9 @@ Angular is used in place of React with the instructor's approval.
 
 ```
 frontend/            Angular app
-  src/app/pages/       Login, dashboard, instructors, classes
+  src/app/pages/       Login, dashboard, instructors, customers, packages, sales, classes, attendance, reports
+  src/app/components/  Shared confirm/alert dialog
+  src/app/models/      Interfaces and shared constants
   src/app/services/    API calls and login state
   src/app/guards/      Route protection
   src/app/interceptors/  Adds the login token to requests
@@ -50,7 +54,8 @@ backend/             Express API
   src/app/services/    Business rules
   src/app/models/      Mongoose schemas
   src/middleware/      Login checks and error handling
-docs/                Project report and diagram images
+  src/scripts/         Seed script for the Manager login
+docs/                Project report (Markdown source and PDF)
 .github/workflows/   CI pipeline
 ```
 
@@ -105,8 +110,15 @@ All routes are under `/api/v1`. Routes marked Manager also need a Manager login.
 | GET | `/health` | Public |
 | GET | `/instructors`, `/instructors/:id`, `/instructors/check-duplicate` | Logged in |
 | POST, PUT, DELETE | `/instructors`, `/instructors/:id` | Manager |
-| GET | `/classes`, `/classes/:id` | Logged in |
-| POST, PUT, DELETE | `/classes`, `/classes/:id` | Manager |
+| GET | `/classes`, `/classes/:id` | Logged in (an Instructor gets only their published classes) |
+| POST, PUT, DELETE | `/classes`, `/classes/:id`, `/classes/:id/publish` | Manager |
+| GET | `/customers`, `/customers/:id` | Logged in |
+| POST, PUT, DELETE | `/customers`, `/customers/:id`, and GET `/customers/check-duplicate` | Manager |
+| GET, POST, PUT, DELETE | `/packages`, `/packages/:id` | Manager |
+| GET, POST | `/sales` | Manager |
+| GET, POST | `/attendance` | Logged in (an Instructor only for their own classes) |
+| GET | `/reports/package-sales`, `/reports/instructors`, `/reports/customers`, `/reports/teacher-payment?month=` | Manager |
+| GET | `/reports/me?month=` | Instructor |
 
 ## Tests
 
@@ -138,7 +150,7 @@ Remove those two variables afterward.
 
 ## Documentation
 
-- [Project report](docs/PROJECT_REPORT.pdf) (source: [`docs/PROJECT_REPORT.md`](docs/PROJECT_REPORT.md)): use cases, design decisions, and UML diagrams
+- [Project report](docs/PROJECT_REPORT_PART_2.pdf) (source: [`docs/PROJECT_REPORT.md`](docs/PROJECT_REPORT.md)): use cases, design decisions, and UML diagrams
 - [`PLAN.md`](PLAN.md): the original spec, including the data model, API design, and flows
 
 ## License

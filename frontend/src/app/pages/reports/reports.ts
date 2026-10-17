@@ -22,6 +22,7 @@ const thisMonth = (): string => {
   selector: 'app-reports',
   imports: [CurrencyPipe, MatFormFieldModule, MatInputModule, MatTableModule, MatTabsModule],
   template: `
+    <!-- Manager: the four studio reports (UC7). Instructor: their own performance (UC9) -->
     @if (auth.isManager()) {
       <mat-tab-group>
         <mat-tab label="Package sales">

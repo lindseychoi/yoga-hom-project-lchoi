@@ -45,6 +45,7 @@ import { InstructorService } from '../../services/instructor.service';
         <th mat-header-cell *matHeaderCellDef>Class</th>
         <td mat-cell *matCellDef="let c">
           {{ c.className }}
+          <!-- Unpublished classes are hidden from instructors until published (UC2) -->
           @if (!c.isPublished) {
             (Draft)
           }
@@ -62,6 +63,7 @@ import { InstructorService } from '../../services/instructor.service';
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let c">
           @if (auth.isManager()) {
+            <!-- Drafts only: publishing sends the confirmations to the instructor and manager -->
             @if (!c.isPublished) {
               <button mat-button type="button" (click)="publish(c)">Publish</button>
             }

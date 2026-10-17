@@ -142,7 +142,7 @@ Every resource follows the same path: route, controller, service, model. Routes 
 
 ### 3.2 Frontend
 
-The pages are Login, This Week (the dashboard), Instructors, and Classes. Each page keeps its template and styles in one file. Small services wrap the API calls, and an HTTP interceptor adds the login token to every request. Route guards keep logged-out visitors out of the app and send logged-in users past the login page. Angular Material provides the tables, forms, dialogs, and navigation.
+The pages are Login, This Week (the dashboard), Instructors, Classes, Customers, Packages, Sales, Attendance, and Reports. Each page keeps its template and styles in one file. Small services wrap the API calls, and an HTTP interceptor adds the login token to every request. Route guards keep logged-out visitors out of the app, send logged-in users past the login page, and keep Instructors off the Manager-only pages. Angular Material provides the tables, forms, dialogs, and navigation.
 
 ### 3.3 Authentication
 
@@ -385,20 +385,19 @@ graph LR
 | Two plain folders, `frontend/` and `backend/` | Simple to understand and maintain for one developer | An Nx monorepo, which added tooling I didn't need |
 | Layered backend: route, controller, service, model | Keeps business rules out of request handling, so they're easy to find | Putting logic in the route handlers |
 | Validation in the Mongoose schemas, with the error handler returning 400 | One place defines what valid data is | A separate validation library, which repeated the same rules |
-| JWT login with two roles | Works on a single dyno with no session storage, and lets me protect routes by role | Server-side sessions |
+| Login tokens (JWT) that carry the user's role (Manager or Instructor) | The server doesn't have to store who is logged in, and each route can check the role in the token | Server-side sessions, where the server keeps a list of logged-in users |
 | Passwords stored as bcrypt hashes | A leaked database doesn't reveal passwords | None |
 | Server-generated IDs from a counter (`I00001`) | Readable and sequential, and the letter tells instructors from customers | MongoDB's long default IDs |
 | One class per day-and-time slot, checked in the service and enforced by a unique index | The service gives a clear message, and the index still guards against simultaneous saves | Checking only in the service |
 | A class has one instructor, stored as `instructorId` | Matches the requirements and keeps the pay report simple | Several instructors per class, which the requirements don't describe |
 | Duplicate instructor names warn but don't block | Two people can share a name, and the requirements ask for a confirmation prompt | Rejecting duplicates |
-| Angular Material with the color palette in SCSS variables | Consistent, accessible components, and one place to change the look | Hand-written CSS for every component |
+| Angular Material, with the color palette kept as SCSS variables that each page's styles use | Consistent, accessible components, and one place to change the colors | Hard-coding color values in each page's styles |
 | Template and styles in one file per page | Fewer files and less boilerplate for small pages | Separate HTML and style files |
 | One Heroku dyno serving the API and the built Angular app | One app and one URL, with no cross-origin setup | Hosting the frontend and backend separately |
 | GitHub Actions for CI, Heroku automatic deploys for CD | No deploy credentials stored in GitHub, and nothing deploys unless the build passes | A deploy step inside the workflow |
 | Messages are simulated: saved and shown on screen | No email or SMS account is needed, and each message can be seen in the app | Real email or texts through a paid service |
-| One class balance per customer. A package that doesn't match the class type is a warning | Matches the paper card and keeps the balance simple | Separate General and Special balances |
-| Unlimited packages don't use up classes | An unlimited pass has nothing to count down | Counting down anyway |
-| "Current" payment time means within 24 hours of now | The requirements don't define it, and a day allows for late entry | Requiring the exact time |
+| Each customer has one class balance. If their package is for General classes but they check in to a Special class (or the reverse), the app warns but still allows it | UC4 gives each customer one class balance, and it keeps the balance simple | Two balances per customer, one for General and one for Special classes |
+| A sale's payment date and time must be within 24 hours of now (UC5 says it must be "current") | The requirements don't say how close "current" is, and a day lets the Manager record a sale a little late | Only accepting the exact current time |
 | New classes start as drafts until published | UC2 has a separate publish step, and the confirmations go out on publish | Publishing on save |
 | A package, customer, or class with sales or attendance can't be deleted | Keeps the reports and history correct | Deleting the history along with it |
 | Teacher pay = pay rate × each session with at least one check-in | Matches "based on the pay-rate and class check-ins" | Paying per check-in |
@@ -415,17 +414,17 @@ The look is a soft five-color palette kept in one SCSS file, with one block type
 
 *Figure 8. Login card.*
 
-![Weekly schedule](../dashboard.png)
+![Weekly schedule](../yoga-part-2-dashboard.png)
 
-*Figure 9. This Week, the weekly class schedule, with today's column highlighted.*
+*Figure 9. This Week, the weekly class schedule, with the Manager's full sidebar.*
 
-![Instructors](../instructors.png)
+![Record sale](../yoga-part-2-record-sale.png)
 
-*Figure 10. Instructors page, where the Manager adds, edits, and deletes instructors.*
+*Figure 10. Record sale dialog. The package type fills in once a package is picked.*
 
-![Classes](../classes.png)
+![Reports](../yoga-part-2-reports.png)
 
-*Figure 11. Classes page, where the Manager schedules classes.*
+*Figure 11. Reports page, Teacher payment tab.*
 
 Part 2 adds the Packages, Customers, Sales, Attendance, and Reports pages. They follow the same pattern: a table, with forms in dialogs. Every form shows an error under each field and keeps Save disabled until it's valid, and the server checks the same rules. Instructors see a shorter sidebar: This Week, Classes, Attendance, and Reports.
 
@@ -443,16 +442,14 @@ CI builds both apps and runs the tests on every change, which catches compile er
 
 ## 9. Use of AI
 
-The course allows AI assistance, which I confirmed with the instructor. I used Claude Code as a pair-programming partner for planning, scaffolding, and implementation. I set ground rules in the repository (`CLAUDE.md`): it had to ask before changing files, couldn't add packages without asking, and had to keep changes small. I reviewed each change before it went in and ran the results myself.
+The course allows AI assistance, which I confirmed with the instructor. I used an AI coding assistant as a pair-programming partner for planning, scaffolding, and implementation. I set ground rules in a rules file in the repository: it had to ask before changing files, couldn't add packages without asking, and had to keep changes small. I reviewed each change before it went in and ran the results myself.
 
-The design decisions were mine, and several went against its first suggestion. I rejected a large monorepo setup for two plain folders. I rejected splitting the app across several free hosts, because the assignment calls for one deployment. I chose Angular Material over hand-built CSS and directed the look of every page, including layout, colors, fonts, and wording. I dropped a separate validation library because it repeated what the database schemas already enforce. I reverted to one instructor per class after checking the requirements, which say "Instructor Id" in the singular. I chose Heroku's automatic deploys over a deploy step in the workflow. The earlier decisions are logged in `PLAN.md`, section 11.
+The design decisions were mine, and several went against its first suggestion. I rejected a large monorepo setup for two plain folders. I rejected splitting the app across several free hosts, because the assignment calls for one deployment. I chose Angular Material as the component library and directed the custom styling on top of it, including the layout, colors, fonts, and wording of every page. I dropped a separate validation library because it repeated what the database schemas already enforce. I reverted to one instructor per class after checking the requirements, which say "Instructor Id" in the singular. I chose Heroku's automatic deploys over a deploy step in the workflow. The earlier decisions are logged in `PLAN.md`, section 11.
 
 ## 10. Limitations and next steps
 
-- Test coverage is thin, and the backend has none.
-- Messages are simulated, not actually sent.
-- There's no sign-up, self-service password reset, or change-password. The Manager sets and resets instructor passwords.
-- Classes have no length, so only classes with the exact same start time conflict.
-- Attendance doesn't record each customer's package type or payment mode, which the paper sheet has.
-- The layout isn't tuned for small phones.
-- The landing photo is large and slows the first load.
+Possible next steps for the studio:
+
+- Send real email and text messages in place of the simulated ones.
+- Let instructors change their own passwords.
+- Make the layout fully responsive on phones.
